@@ -2,7 +2,7 @@
   "realm": "portal-dev",
   "enabled": true,
   "attributes": {
-    "frontendUrl": "https://keycloak.localhost/",
+    "frontendUrl": "https://keycloak.localhost:8443/",
     "acr.loa.map": "{}"
   },
   "registrationAllowed": false,

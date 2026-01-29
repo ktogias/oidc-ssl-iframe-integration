@@ -1,5 +1,5 @@
 {
-  "url": "https://keycloak.localhost/",
+  "url": "https://keycloak.localhost:8443/",
   "realm": "portal-dev",
   "clientId": "portal-spa"
 }

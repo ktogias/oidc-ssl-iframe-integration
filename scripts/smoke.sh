@@ -37,7 +37,7 @@ if [[ "$partner_code" != "302" && "$partner_code" != "303" ]]; then
   exit 1
 fi
 
-if [[ -z "$location_header" || "$location_header" != https://keycloak.localhost* ]]; then
+if [[ -z "$location_header" || "$location_header" != https://keycloak.localhost:8443* ]]; then
   echo "[smoke] Unexpected redirect target for partner route: $location_header" >&2
   exit 1
 fi
