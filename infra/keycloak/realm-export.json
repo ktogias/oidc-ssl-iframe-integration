@@ -31,7 +31,8 @@
         "https://portal.localhost:8443"
       ],
       "redirectUris": [
-        "https://portal.localhost/*"
+        "https://portal.localhost/*",
+        "https://keycloak.localhost/*"
       ],
       "defaultClientScopes": [
         "profile",
