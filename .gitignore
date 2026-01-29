@@ -12,3 +12,5 @@ node_modules/
 dist/
 .env
 __pycache__/
+infra/portal/app/.angular/
+infra/portal/app/dist/

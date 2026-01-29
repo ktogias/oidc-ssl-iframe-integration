@@ -1,0 +1,43 @@
+<div class="layout">
+  <header>
+    <div>
+      <h1>{{ title }}</h1>
+      <p class="subtitle">OIDC-authenticated portal embedding a partner app via iframe.</p>
+    </div>
+    <button type="button" (click)="logout()" *ngIf="isAuthenticated">Logout</button>
+  </header>
+
+  <section class="card" *ngIf="profile as user; else unauthenticated">
+    <h2>User Profile</h2>
+    <dl>
+      <div>
+        <dt>Name</dt>
+        <dd>{{ user.firstName }} {{ user.lastName }}</dd>
+      </div>
+      <div>
+        <dt>Username</dt>
+        <dd>{{ user.username }}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ user.email }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="card" *ngIf="tokenClaims">
+    <h2>ID Token Claims</h2>
+    <pre>{{ tokenClaims | json }}</pre>
+  </section>
+
+  <section class="iframe-shell">
+    <h2>Partner Application</h2>
+    <iframe src="/partner/" title="Partner application" loading="lazy"></iframe>
+  </section>
+</div>
+
+<ng-template #unauthenticated>
+  <section class="card warning">
+    <p>Authenticating with Keycloak…</p>
+  </section>
+</ng-template>

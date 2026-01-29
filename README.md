@@ -62,7 +62,7 @@ sequenceDiagram
 ## Configuration Artifacts
 - `infra/keycloak/realm-export.json` – realm export describing the `portal-spa` and `partner-proxy` clients plus demo users/roles.
 - `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config pointing to mounted certificates.
-- `infra/portal/html/assets/keycloak.json` – Angular `KeycloakConfig` payload consumed by `angular-keycloak` during bootstrap.
+- `infra/portal/app/src/assets/keycloak.json` – Angular `KeycloakConfig` payload consumed by `keycloak-angular` during bootstrap.
 - `infra/apache/conf.d/ssl.conf` & `infra/apache/conf.d/oidc.conf` – virtual host proxying logic plus `mod_auth_openidc` directives for `/partner/*`.
 - `infra/apache/html/oidc_popup_callback.html` – popup callback served by Apache for the partner OAuth2 flow.
 - `infra/certs/README.md` – instructions to mint the shared dev certificate authority and per-service certs (ignored by git).
@@ -76,7 +76,7 @@ sequenceDiagram
 
 The compose file lives at the repository root and wires the following services:
 - `keycloak` (imports `infra/keycloak/realm-export.json` automatically on startup)
-- `portal` (placeholder static site served by Nginx with `assets/keycloak.json`)
+- `portal` (Angular app built from `infra/portal/app`, served via Nginx, bootstrapping Keycloak on load)
 - `partner` (Flask backend listening on port 8080, echoing identity headers)
 - `apache-gateway` (builds from `infra/apache`, loads the TLS material from `infra/certs`, and enforces OIDC for `/partner/*`).
 
@@ -88,6 +88,8 @@ The partner container runs a lightweight Flask service (see `infra/partner/app`)
 
 This keeps the iframe target realistic enough to validate the OIDC enforcement layer while remaining easy to extend with more routes.
 
+## Portal Frontend
+The portal service is an Angular application (`infra/portal/app`) that leverages `keycloak-angular` to enforce an immediate login (`onLoad: 'login-required'`). After bootstrap it fetches the user profile, renders ID-token claims, and embeds the `/partner/` iframe so contributors can validate cross-origin behavior without wiring a full production UI yet. The Docker image performs a multi-stage build (Node → Nginx) so no Node runtime ships in production containers.
+
 ## Next Steps
-- Replace the placeholder portal container with the actual Angular build output and wire up `angular-keycloak` for real authentication logic.
 - Add automated smoke tests that hit `https://portal.local` and `https://portal.local/partner/` to ensure TLS, routing, and Keycloak imports keep working across environments.
