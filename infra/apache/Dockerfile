@@ -21,7 +21,9 @@ RUN mkdir -p /etc/apache2/conf.d
 COPY conf.d/oidc.conf /etc/apache2/conf.d/oidc.conf
 
 COPY html /var/www/html
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80 443
 
-CMD ["apachectl", "-D", "FOREGROUND"]
+CMD ["/entrypoint.sh"]
