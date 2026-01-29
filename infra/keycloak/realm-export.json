@@ -1,0 +1,112 @@
+{
+  "realm": "portal-dev",
+  "enabled": true,
+  "attributes": {
+    "frontendUrl": "https://keycloak.local/",
+    "acr.loa.map": "{}"
+  },
+  "registrationAllowed": false,
+  "rememberMe": true,
+  "resetPasswordAllowed": true,
+  "clients": [
+    {
+      "clientId": "portal-spa",
+      "name": "Portal SPA",
+      "description": "Angular portal using angular-keycloak",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+",
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "webOrigins": [
+        "https://portal.local",
+        "https://portal.local:8443"
+      ],
+      "redirectUris": [
+        "https://portal.local/*"
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "offline_access"
+      ]
+    },
+    {
+      "clientId": "partner-proxy",
+      "name": "Partner Apache Gateway",
+      "description": "Apache mod_auth_openidc acting on behalf of the partner iframe",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "CHANGE_ME_PARTNER_PROXY_SECRET",
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "attributes": {
+        "use.refresh.tokens": "true",
+        "client_credentials.use_refresh_token": "false",
+        "post.logout.redirect.uris": "+",
+        "pkce.code.challenge.method": "S256"
+      },
+      "redirectUris": [
+        "https://portal.local/oidc_popup_callback.html",
+        "https://portal.local/partner/*"
+      ],
+      "webOrigins": [
+        "https://portal.local"
+      ],
+      "authorizationServicesEnabled": false,
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "offline_access"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "demo.user",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "demo.user@example.com",
+      "firstName": "Demo",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "changeMe123",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "offline_access"
+      ]
+    }
+  ],
+  "groups": [],
+  "roles": {
+    "realm": [
+      {
+        "name": "portal-user",
+        "description": "Base role for portal end users"
+      },
+      {
+        "name": "partner-user",
+        "description": "Role required to see partner iframe"
+      }
+    ]
+  }
+}

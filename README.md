@@ -59,5 +59,13 @@ sequenceDiagram
 - Serve `oidc_popup_callback.html` and related assets from a static directory.
 - Enforce OAuth2 on partner paths, injecting user info headers (e.g., `X-User-Email`) before forwarding downstream.
 
+## Configuration Artifacts
+- `infra/keycloak/realm-export.json` – realm export describing the `portal-spa` and `partner-proxy` clients plus demo users/roles.
+- `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config pointing to mounted certificates.
+- `infra/portal/keycloak.json` – Angular `KeycloakConfig` payload consumed by `angular-keycloak` during bootstrap.
+- `infra/apache/conf.d/ssl.conf` & `infra/apache/conf.d/oidc.conf` – virtual host proxying logic plus `mod_auth_openidc` directives for `/partner/*`.
+- `infra/apache/html/oidc_popup_callback.html` – popup callback served by Apache for the partner OAuth2 flow.
+- `infra/certs/README.md` – instructions to mint the shared dev certificate authority and per-service certs (ignored by git).
+
 ## Next Steps
 Implement Docker Compose definitions for each container, codify Keycloak realm exports, and document environment variables (`KEYCLOAK_URL`, `PORTAL_BASE_URL`, etc.) so contributors can launch the stack with a single command.

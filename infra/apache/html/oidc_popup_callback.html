@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OIDC Popup Callback</title>
+    <script>
+      (function () {
+        // Relay URL fragment parameters to the parent window for silent refresh flows.
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage({ type: 'oidc-token-response', url: window.location.href }, '*');
+        }
+        window.close();
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Completing authentication…</p>
+  </body>
+</html>

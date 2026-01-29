@@ -1,0 +1,12 @@
+# Local TLS assets
+infra/certs/*.key
+infra/certs/*.crt
+infra/certs/*.csr
+infra/certs/*.srl
+infra/certs/*.jks
+infra/certs/*.pfx
+infra/certs/*.pem
+
+# Node / Angular artifacts (future-proofing)
+node_modules/
+dist/
