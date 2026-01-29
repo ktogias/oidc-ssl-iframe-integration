@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Portal Placeholder</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 2rem;
+        background: #f6f8fb;
+      }
+      iframe {
+        width: 100%;
+        height: 480px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #fff;
+      }
+      pre {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Portal Placeholder</h1>
+    <p>
+      The real Angular application will mount here and use <code>angular-keycloak</code> with the
+      configuration provided at <code>/assets/keycloak.json</code>.
+    </p>
+    <pre id="config"></pre>
+    <h2>Partner Iframe</h2>
+    <iframe src="/partner/" title="Partner application"></iframe>
+    <script>
+      fetch('/assets/keycloak.json')
+        .then((r) => r.json())
+        .then((cfg) => {
+          document.getElementById('config').textContent = JSON.stringify(cfg, null, 2);
+        })
+        .catch((err) => {
+          document.getElementById('config').textContent = 'Unable to load keycloak.json: ' + err;
+        });
+    </script>
+  </body>
+</html>

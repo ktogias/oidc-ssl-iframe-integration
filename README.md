@@ -9,7 +9,7 @@ This project explores how a customer-facing "portal" can expose a third-party "p
 - **Keycloak** – identity provider, realms/clients for both the portal SPA and the partner site, stores demo users/roles.
 - **Apache Gateway** – terminates TLS, serves static callbacks (e.g., `oidc_popup_callback.html`), proxies `/` → portal and `/partner/*` → partner app, enforces OAuth2 for partner traffic via `mod_auth_openidc`.
 - **Portal (SPA)** – Angular-based UI, registered as an OIDC public client; loads the partner iframe and exchanges user state with Apache through HTTPS calls.
-- **Partner App/Site** – sample upstream service framed inside the portal; trusts Apache for authentication and authorization decisions.
+- **Partner App/Site** – Flask-based upstream service framed inside the portal; trusts Apache for authentication and authorization decisions.
 
 ### Topology Diagram
 ```mermaid
@@ -62,10 +62,32 @@ sequenceDiagram
 ## Configuration Artifacts
 - `infra/keycloak/realm-export.json` – realm export describing the `portal-spa` and `partner-proxy` clients plus demo users/roles.
 - `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config pointing to mounted certificates.
-- `infra/portal/keycloak.json` – Angular `KeycloakConfig` payload consumed by `angular-keycloak` during bootstrap.
+- `infra/portal/html/assets/keycloak.json` – Angular `KeycloakConfig` payload consumed by `angular-keycloak` during bootstrap.
 - `infra/apache/conf.d/ssl.conf` & `infra/apache/conf.d/oidc.conf` – virtual host proxying logic plus `mod_auth_openidc` directives for `/partner/*`.
 - `infra/apache/html/oidc_popup_callback.html` – popup callback served by Apache for the partner OAuth2 flow.
 - `infra/certs/README.md` – instructions to mint the shared dev certificate authority and per-service certs (ignored by git).
+- `infra/partner/app` – Flask backend exposed through Apache; surfaces forwarded identity headers via `GET /claims`.
+
+## Running with Docker Compose
+1. Generate the TLS assets described in `infra/certs/README.md` (Apache expects `portal-dev.key|crt`, Keycloak expects `keycloak-dev.key|crt`, and both reuse the CA + trust-store files).
+2. Copy `.env.example` to `.env` and fill in the Keycloak admin credentials plus the partner proxy secret and crypto passphrase.
+3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or accept the warning) and add host entries for `portal.local`, `partner.local`, and `keycloak.local` pointing to `127.0.0.1`.
+4. Launch the stack: `docker compose up --build`. Keycloak becomes available at `https://keycloak.local:8443`, while Apache listens on `https://portal.local` and proxies traffic to the portal + partner containers. Visit `https://portal.local` to view the Angular portal stub and `https://portal.local/partner/claims` to hit the partner API behind the OIDC-protected route.
+
+The compose file lives at the repository root and wires the following services:
+- `keycloak` (imports `infra/keycloak/realm-export.json` automatically on startup)
+- `portal` (placeholder static site served by Nginx with `assets/keycloak.json`)
+- `partner` (Flask backend listening on port 8080, echoing identity headers)
+- `apache-gateway` (builds from `infra/apache`, loads the TLS material from `infra/certs`, and enforces OIDC for `/partner/*`).
+
+## Partner Backend
+The partner container runs a lightweight Flask service (see `infra/partner/app`) that:
+- renders an informational landing page describing which headers Apache injects;
+- exposes `GET /claims`, which echoes the received identity headers for easy debugging;
+- provides `/healthz` for smoke tests.
+
+This keeps the iframe target realistic enough to validate the OIDC enforcement layer while remaining easy to extend with more routes.
 
 ## Next Steps
-Implement Docker Compose definitions for each container, codify Keycloak realm exports, and document environment variables (`KEYCLOAK_URL`, `PORTAL_BASE_URL`, etc.) so contributors can launch the stack with a single command.
+- Replace the placeholder portal container with the actual Angular build output and wire up `angular-keycloak` for real authentication logic.
+- Add automated smoke tests that hit `https://portal.local` and `https://portal.local/partner/` to ensure TLS, routing, and Keycloak imports keep working across environments.

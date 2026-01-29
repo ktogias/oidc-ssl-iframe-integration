@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: keycloak
+    command:
+      - start
+      - --optimized
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./infra/keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf:ro
+      - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./infra/certs/keycloak-dev.crt:/opt/keycloak/conf/tls/keycloak-dev.crt:ro
+      - ./infra/certs/keycloak-dev.key:/opt/keycloak/conf/tls/keycloak-dev.key:ro
+      - ./infra/certs/portal-dev-ca.jks:/opt/keycloak/conf/tls/portal-dev-ca.jks:ro
+    ports:
+      - "8443:8443"
+    networks:
+      oidc-net:
+        aliases:
+          - keycloak.local
+
+  portal:
+    build:
+      context: ./infra/portal
+    container_name: portal
+    ports:
+      - "4200:80"
+    networks:
+      oidc-net:
+        aliases:
+          - portal
+
+  partner:
+    build:
+      context: ./infra/partner
+    container_name: partner
+    expose:
+      - "8080"
+    networks:
+      oidc-net:
+        aliases:
+          - partner
+
+  apache:
+    build:
+      context: ./infra/apache
+    container_name: apache-gateway
+    depends_on:
+      - portal
+      - partner
+      - keycloak
+    environment:
+      OIDC_PARTNER_PROXY_SECRET: ${OIDC_PARTNER_PROXY_SECRET:-change-me}
+      OIDC_CRYPTO_PASSPHRASE: ${OIDC_CRYPTO_PASSPHRASE:-change-me}
+    volumes:
+      - ./infra/certs:/etc/apache2/tls:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      oidc-net:
+        aliases:
+          - portal.local
+          - partner.local
+
+networks:
+  oidc-net:
+    driver: bridge

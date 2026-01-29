@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Partner Application</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 1.5rem;
+        background: #fffbe6;
+        color: #111;
+      }
+      code {
+        background: rgba(0, 0, 0, 0.07);
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+      }
+      pre {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        overflow: auto;
+      }
+      .claims-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+      .claim-card {
+        background: #fffdfa;
+        border: 1px solid #f0d98c;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Partner Application</h1>
+    <p>
+      Apache injects identity headers before proxying traffic here. This simple Flask backend reads those headers and
+      surfaces them via <code>GET /claims</code> for debugging. Try opening the browser devtools network tab to see the raw request headers.
+    </p>
+
+    <h2>Expected Headers</h2>
+    <ul>
+      {% for claim, header in header_map.items() %}
+      <li>
+        <strong>{{ claim }}</strong> → <code>{{ header }}</code>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <h2>Resolved Claims</h2>
+    <pre id="claims">Loading…</pre>
+
+    <script>
+      fetch('claims', { credentials: 'include' })
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('claims').textContent = JSON.stringify(data, null, 2);
+        })
+        .catch((err) => {
+          document.getElementById('claims').textContent = 'Failed to load claims: ' + err;
+        });
+    </script>
+  </body>
+</html>

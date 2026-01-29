@@ -10,3 +10,5 @@ infra/certs/*.pem
 # Node / Angular artifacts (future-proofing)
 node_modules/
 dist/
+.env
+__pycache__/
