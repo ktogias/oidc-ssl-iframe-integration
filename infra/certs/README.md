@@ -2,6 +2,8 @@
 
 Development builds reuse a single internal certificate authority (CA) so both Apache and Keycloak trust each other while exposing HTTPS endpoints to the host. Generate the files once and mount them into the containers defined in `docker-compose.yml` (to be added).
 
+> **Tip:** Run `./scripts/bootstrap.sh` to generate every artifact automatically (requires `openssl` + `keytool`). The manual commands below remain available if you prefer to craft the files yourself.
+
 ## Step-by-step
 1. **Create a local CA**
    ```bash

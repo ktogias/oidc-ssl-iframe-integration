@@ -69,8 +69,8 @@ sequenceDiagram
 - `infra/partner/app` – Flask backend exposed through Apache; surfaces forwarded identity headers via `GET /claims`.
 
 ## Running with Docker Compose
-1. Generate the TLS assets described in `infra/certs/README.md` (Apache expects `portal-dev.key|crt`, Keycloak expects `keycloak-dev.key|crt`, and both reuse the CA + trust-store files).
-2. Copy `.env.example` to `.env` and fill in the Keycloak admin credentials plus the partner proxy secret and crypto passphrase.
+1. Run `./scripts/bootstrap.sh` (requires `openssl` + `keytool`). It provisions the `.env` file, generates the CA + service certificates inside `infra/certs/`, and builds the Keycloak truststore used during startup.
+2. Optionally tweak `.env` if you need different admin credentials or proxy secrets.
 3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or accept the warning). The `.localhost` suffix resolves to `127.0.0.1` automatically on modern systems, so no manual hosts entries are required.
 4. Launch the stack: `docker compose up --build`. Keycloak becomes available at `https://keycloak.localhost:8443`, while Apache listens on `https://portal.localhost` and proxies traffic to the portal + partner containers. Visit `https://portal.localhost` to view the Angular portal stub and `https://portal.localhost/partner/claims` to hit the partner API behind the OIDC-protected route.
 
