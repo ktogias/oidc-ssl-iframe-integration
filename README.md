@@ -80,6 +80,9 @@ The compose file lives at the repository root and wires the following services:
 - `partner` (Flask backend listening on port 8080, echoing identity headers)
 - `apache-gateway` (builds from `infra/apache`, loads the TLS material from `infra/certs`, and enforces OIDC for `/partner/*`).
 
+## Smoke Tests
+After the stack is up (and the CA is trusted locally), run `./scripts/smoke.sh`. The script hits `https://portal.local/` expecting an HTTP 200 from the Angular frontend and then calls `https://portal.local/partner/`, asserting that Apache returns a 302 redirect to Keycloak. Set `VERIFY_TLS=true` to enforce certificate validation or override the host with `BASE_URL`.
+
 ## Partner Backend
 The partner container runs a lightweight Flask service (see `infra/partner/app`) that:
 - renders an informational landing page describing which headers Apache injects;
@@ -92,4 +95,5 @@ This keeps the iframe target realistic enough to validate the OIDC enforcement l
 The portal service is an Angular application (`infra/portal/app`) that leverages `keycloak-angular` to enforce an immediate login (`onLoad: 'login-required'`). After bootstrap it fetches the user profile, renders ID-token claims, and embeds the `/partner/` iframe so contributors can validate cross-origin behavior without wiring a full production UI yet. The Docker image performs a multi-stage build (Node → Nginx) so no Node runtime ships in production containers.
 
 ## Next Steps
-- Add automated smoke tests that hit `https://portal.local` and `https://portal.local/partner/` to ensure TLS, routing, and Keycloak imports keep working across environments.
+- Integrate the smoke script into CI so every change validates TLS routing and Keycloak imports automatically.
+- Add end-to-end tests (e.g., Cypress) that perform a full login, load the iframe, and assert headers reach the partner backend.
