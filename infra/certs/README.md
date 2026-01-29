@@ -9,29 +9,29 @@ Development builds reuse a single internal certificate authority (CA) so both Ap
      -subj "/C=US/ST=CA/O=PortalDev/OU=CA/CN=Portal Dev CA" \
      -keyout portal-dev-ca.key -out portal-dev-ca.crt
    ```
-2. **Issue a cert for Apache (`portal.local`)**
+2. **Issue a cert for Apache (`portal.localhost`)**
    ```bash
    openssl req -new -nodes \
-     -subj "/C=US/ST=CA/O=PortalDev/CN=portal.local" \
+     -subj "/C=US/ST=CA/O=PortalDev/CN=portal.localhost" \
      -keyout portal-dev.key -out portal-dev.csr
    openssl x509 -req -sha256 -days 825 \
      -in portal-dev.csr -CA portal-dev-ca.crt -CAkey portal-dev-ca.key -CAcreateserial \
      -out portal-dev.crt -extensions v3_req -extfile <(cat <<'EOT'
    [v3_req]
-   subjectAltName=DNS:portal.local,DNS:partner.local
+   subjectAltName=DNS:portal.localhost,DNS:partner.localhost
    EOT
    )
    ```
-3. **Issue a cert for Keycloak (`keycloak.local`)**
+3. **Issue a cert for Keycloak (`keycloak.localhost`)**
    ```bash
    openssl req -new -nodes \
-     -subj "/C=US/ST=CA/O=PortalDev/CN=keycloak.local" \
+     -subj "/C=US/ST=CA/O=PortalDev/CN=keycloak.localhost" \
      -keyout keycloak-dev.key -out keycloak-dev.csr
    openssl x509 -req -sha256 -days 825 \
      -in keycloak-dev.csr -CA portal-dev-ca.crt -CAkey portal-dev-ca.key -CAcreateserial \
      -out keycloak-dev.crt -extensions v3_req -extfile <(cat <<'EOT'
    [v3_req]
-   subjectAltName=DNS:keycloak.local
+   subjectAltName=DNS:keycloak.localhost
    EOT
    )
    ```

@@ -22,7 +22,7 @@ services:
     networks:
       oidc-net:
         aliases:
-          - keycloak.local
+          - keycloak.localhost
 
   portal:
     build:
@@ -65,8 +65,8 @@ services:
     networks:
       oidc-net:
         aliases:
-          - portal.local
-          - partner.local
+          - portal.localhost
+          - partner.localhost
 
 networks:
   oidc-net:

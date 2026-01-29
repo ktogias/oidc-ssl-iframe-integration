@@ -2,7 +2,7 @@
   "realm": "portal-dev",
   "enabled": true,
   "attributes": {
-    "frontendUrl": "https://keycloak.local/",
+    "frontendUrl": "https://keycloak.localhost/",
     "acr.loa.map": "{}"
   },
   "registrationAllowed": false,
@@ -27,11 +27,11 @@
         "backchannel.logout.revoke.offline.tokens": "false"
       },
       "webOrigins": [
-        "https://portal.local",
-        "https://portal.local:8443"
+        "https://portal.localhost",
+        "https://portal.localhost:8443"
       ],
       "redirectUris": [
-        "https://portal.local/*"
+        "https://portal.localhost/*"
       ],
       "defaultClientScopes": [
         "profile",
@@ -59,11 +59,11 @@
         "pkce.code.challenge.method": "S256"
       },
       "redirectUris": [
-        "https://portal.local/oidc_popup_callback.html",
-        "https://portal.local/partner/*"
+        "https://portal.localhost/oidc_popup_callback.html",
+        "https://portal.localhost/partner/*"
       ],
       "webOrigins": [
-        "https://portal.local"
+        "https://portal.localhost"
       ],
       "authorizationServicesEnabled": false,
       "defaultClientScopes": [

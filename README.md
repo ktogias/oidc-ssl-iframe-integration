@@ -23,7 +23,7 @@ graph LR
 ```
 
 ## Request & Authentication Flow
-1. User hits `https://portal.local/` and Angular bootstraps with `angular-keycloak`, performing an authorization code + PKCE flow directly against Keycloak.
+1. User hits `https://portal.localhost/` and Angular bootstraps with `angular-keycloak`, performing an authorization code + PKCE flow directly against Keycloak.
 2. The authenticated UI renders an iframe whose `src` resides under `/partner/*`; Apache intercepts that path, triggers `mod_auth_openidc`, and redirects the browser to Keycloak for a second OAuth2 code flow tied to the partner client.
 3. After Keycloak redirects back to Apache (via `/oidc_popup_callback.html` for silent refresh/popups), Apache validates the token set and injects headers/cookies before proxying the request to the partner container over the internal network.
 4. Subsequent iframe interactions reuse the established Apache session until expiration, and both portal calls and partner calls remain TLS-protected end-to-end.
@@ -71,8 +71,8 @@ sequenceDiagram
 ## Running with Docker Compose
 1. Generate the TLS assets described in `infra/certs/README.md` (Apache expects `portal-dev.key|crt`, Keycloak expects `keycloak-dev.key|crt`, and both reuse the CA + trust-store files).
 2. Copy `.env.example` to `.env` and fill in the Keycloak admin credentials plus the partner proxy secret and crypto passphrase.
-3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or accept the warning) and add host entries for `portal.local`, `partner.local`, and `keycloak.local` pointing to `127.0.0.1`.
-4. Launch the stack: `docker compose up --build`. Keycloak becomes available at `https://keycloak.local:8443`, while Apache listens on `https://portal.local` and proxies traffic to the portal + partner containers. Visit `https://portal.local` to view the Angular portal stub and `https://portal.local/partner/claims` to hit the partner API behind the OIDC-protected route.
+3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or accept the warning). The `.localhost` suffix resolves to `127.0.0.1` automatically on modern systems, so no manual hosts entries are required.
+4. Launch the stack: `docker compose up --build`. Keycloak becomes available at `https://keycloak.localhost:8443`, while Apache listens on `https://portal.localhost` and proxies traffic to the portal + partner containers. Visit `https://portal.localhost` to view the Angular portal stub and `https://portal.localhost/partner/claims` to hit the partner API behind the OIDC-protected route.
 
 The compose file lives at the repository root and wires the following services:
 - `keycloak` (imports `infra/keycloak/realm-export.json` automatically on startup)
@@ -81,7 +81,7 @@ The compose file lives at the repository root and wires the following services:
 - `apache-gateway` (builds from `infra/apache`, loads the TLS material from `infra/certs`, and enforces OIDC for `/partner/*`).
 
 ## Smoke Tests
-After the stack is up (and the CA is trusted locally), run `./scripts/smoke.sh`. The script hits `https://portal.local/` expecting an HTTP 200 from the Angular frontend and then calls `https://portal.local/partner/`, asserting that Apache returns a 302 redirect to Keycloak. Set `VERIFY_TLS=true` to enforce certificate validation or override the host with `BASE_URL`.
+After the stack is up (and the CA is trusted locally), run `./scripts/smoke.sh`. The script hits `https://portal.localhost/` expecting an HTTP 200 from the Angular frontend and then calls `https://portal.localhost/partner/`, asserting that Apache returns a 302 redirect to Keycloak. Set `VERIFY_TLS=true` to enforce certificate validation or override the host with `BASE_URL`.
 
 ## Partner Backend
 The partner container runs a lightweight Flask service (see `infra/partner/app`) that:

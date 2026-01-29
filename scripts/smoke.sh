@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-https://portal.local}"
+BASE_URL="${BASE_URL:-https://portal.localhost}"
 PORTAL_URL="$BASE_URL/"
 PARTNER_URL="$BASE_URL/partner/"
 VERIFY_TLS="${VERIFY_TLS:-false}"
@@ -37,7 +37,7 @@ if [[ "$partner_code" != "302" && "$partner_code" != "303" ]]; then
   exit 1
 fi
 
-if [[ -z "$location_header" || "$location_header" != https://keycloak.local* ]]; then
+if [[ -z "$location_header" || "$location_header" != https://keycloak.localhost* ]]; then
   echo "[smoke] Unexpected redirect target for partner route: $location_header" >&2
   exit 1
 fi
