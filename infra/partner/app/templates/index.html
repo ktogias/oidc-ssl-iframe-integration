@@ -58,10 +58,18 @@
     <pre id="claims">Loading…</pre>
 
     <script>
+      const params = new URLSearchParams(window.location.search);
+      const handshakeMode =
+        params.get('popup_handshake') === 'true' || (window.opener && !window.opener.closed);
+
       fetch('claims', { credentials: 'include' })
         .then((response) => response.json())
         .then((data) => {
           document.getElementById('claims').textContent = JSON.stringify(data, null, 2);
+          if (handshakeMode && window.opener && !window.opener.closed) {
+            window.opener.postMessage({ type: 'partner-handshake-complete' }, window.location.origin);
+            window.close();
+          }
         })
         .catch((err) => {
           document.getElementById('claims').textContent = 'Failed to load claims: ' + err;

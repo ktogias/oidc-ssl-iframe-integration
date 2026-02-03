@@ -45,6 +45,46 @@ header {
   border-color: #fdba74;
 }
 
+.partner-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  button {
+    border: none;
+    border-radius: 6px;
+    padding: 0.65rem 1.4rem;
+    background: #0f172a;
+    color: #fff;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .status {
+    font-size: 0.9rem;
+  }
+
+  .status.success {
+    color: #15803d;
+  }
+
+  .status.error {
+    color: #dc2626;
+  }
+}
+
 dl {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

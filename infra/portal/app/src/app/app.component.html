@@ -30,7 +30,28 @@
     <pre>{{ tokenClaims | json }}</pre>
   </section>
 
-  <section class="iframe-shell">
+  <section class="card partner-actions" *ngIf="isAuthenticated">
+    <div>
+      <h2>Partner Session</h2>
+      <p>Open a secure popup to complete the partner OIDC handshake before loading the iframe.</p>
+    </div>
+    <div class="actions">
+      <button
+        type="button"
+        (click)="connectPartnerSession()"
+        [disabled]="partnerReady || partnerConnectLoading"
+      >
+        <ng-container *ngIf="partnerReady; else connectLabel">Partner connected</ng-container>
+      </button>
+      <ng-template #connectLabel>
+        {{ partnerConnectLoading ? 'Connecting…' : 'Connect partner session' }}
+      </ng-template>
+      <p class="status success" *ngIf="partnerReady">Iframe session established.</p>
+      <p class="status error" *ngIf="partnerError">{{ partnerError }}</p>
+    </div>
+  </section>
+
+  <section class="iframe-shell" *ngIf="partnerReady; else partnerPending">
     <h2>Partner Application</h2>
     <iframe src="/partner/" title="Partner application" loading="lazy"></iframe>
   </section>
@@ -39,5 +60,11 @@
 <ng-template #unauthenticated>
   <section class="card warning">
     <p>Authenticating with Keycloak…</p>
+  </section>
+</ng-template>
+
+<ng-template #partnerPending>
+  <section class="card warning" *ngIf="isAuthenticated">
+    <p>Launch the partner session using the button above to display the iframe.</p>
   </section>
 </ng-template>
