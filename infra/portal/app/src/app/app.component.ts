@@ -39,8 +39,16 @@ export class AppComponent implements OnInit, OnDestroy {
     window.addEventListener('message', this.messageHandler);
     this.isAuthenticated = await this.keycloak.isLoggedIn();
     if (this.isAuthenticated) {
-      this.profile = await this.keycloak.loadUserProfile();
-      this.tokenClaims = this.keycloak.getKeycloakInstance().tokenParsed ?? null;
+      try {
+        this.profile = await this.keycloak.loadUserProfile();
+        this.tokenClaims = this.keycloak.getKeycloakInstance().tokenParsed ?? null;
+      } catch (err) {
+        console.error('Error loading profile or token claims:', err);
+      }
+      // Use a macrotask so it's robust in case microtasks were affected.
+      setTimeout(() => {
+        this.connectPartnerSession();
+      }, 0);
     }
   }
 
