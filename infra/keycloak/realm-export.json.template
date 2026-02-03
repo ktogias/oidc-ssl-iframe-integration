@@ -56,11 +56,10 @@
       "attributes": {
         "use.refresh.tokens": "true",
         "client_credentials.use_refresh_token": "false",
-        "post.logout.redirect.uris": "+",
-        "pkce.code.challenge.method": "S256"
+        "post.logout.redirect.uris": "+"
       },
       "redirectUris": [
-        "https://portal.localhost/oidc_popup_callback.html",
+        "https://portal.localhost/oidc_popup_callback",
         "https://portal.localhost/partner/*"
       ],
       "webOrigins": [

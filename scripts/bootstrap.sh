@@ -102,7 +102,7 @@ main() {
   ensure_certs_dir
   generate_ca
   sign_cert "portal-dev" "portal.localhost" "DNS:portal.localhost,DNS:partner.localhost"
-  sign_cert "keycloak-dev" "keycloak.localhost" "DNS:keycloak.localhost"
+  sign_cert "keycloak-dev" "keycloak.localhost" "DNS:keycloak.localhost,DNS:keycloak"
   build_truststore
   bootstrap_env_file
   log "Bootstrap complete. You can now run 'docker compose up --build'."

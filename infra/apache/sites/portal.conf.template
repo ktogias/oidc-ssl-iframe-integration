@@ -1,0 +1,62 @@
+<VirtualHost *:80>
+    ServerName portal.localhost
+    ServerAlias partner.localhost
+    RewriteEngine On
+    RewriteRule ^/(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName portal.localhost
+    ServerAlias partner.localhost
+
+    SSLEngine on
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite HIGH:!aNULL:!MD5
+    SSLCertificateFile /etc/apache2/tls/portal-dev.crt
+    SSLCertificateKeyFile /etc/apache2/tls/portal-dev.key
+    SSLCertificateChainFile /etc/apache2/tls/portal-dev-ca.crt
+
+    Alias /oidc_popup_callback /var/www/html/oidc_popup_callback.html
+
+    <Location />
+        Require all granted
+    </Location>
+
+    <Location /oidc_popup_callback>
+        AuthType openid-connect
+        Require valid-user
+    </Location>
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    ProxyPass /oidc_popup_callback !
+    ProxyPassReverse /oidc_popup_callback !
+
+    ProxyPass /partner/ http://partner:8080/
+    ProxyPassReverse /partner/ http://partner:8080/
+
+    ProxyPass / http://portal:80/
+    ProxyPassReverse / http://portal:80/
+
+    OIDCProviderMetadataURL https://keycloak:8443/realms/portal-dev/.well-known/openid-configuration
+    OIDCClientID partner-proxy
+    OIDCClientSecret ${OIDC_PARTNER_PROXY_SECRET}
+    OIDCRedirectURI https://portal.localhost/oidc_popup_callback
+    OIDCCryptoPassphrase ${OIDC_CRYPTO_PASSPHRASE}
+    OIDCDefaultURL https://portal.localhost/
+    OIDCScope "openid email profile roles"
+    OIDCPassClaimsAs environment
+
+    # Forward selected identity claims to the partner service
+    RequestHeader set X-User-Name "%{OIDC_CLAIM_preferred_username}e" env=OIDC_CLAIM_preferred_username
+    RequestHeader set X-User-Email "%{OIDC_CLAIM_email}e" env=OIDC_CLAIM_email
+    RequestHeader set X-User-Roles "%{OIDC_CLAIM_realm_access.roles}e" env=OIDC_CLAIM_realm_access_roles
+
+    <Location /partner>
+        AuthType openid-connect
+        Require claim realm_access.roles:partner-user
+        Require valid-user
+    </Location>
+
+</VirtualHost>

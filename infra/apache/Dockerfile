@@ -7,18 +7,11 @@ ENV APACHE_RUN_USER=www-data \
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       apache2 libapache2-mod-auth-openidc ca-certificates \
+       apache2 libapache2-mod-auth-openidc ca-certificates gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 RUN a2enmod ssl headers proxy proxy_http proxy_wstunnel proxy_html rewrite auth_openidc \
     && a2dissite 000-default
-
-# Provide custom configuration
-COPY conf.d/ssl.conf /etc/apache2/sites-available/portal.conf
-RUN ln -s /etc/apache2/sites-available/portal.conf /etc/apache2/sites-enabled/portal.conf
-
-RUN mkdir -p /etc/apache2/conf.d
-COPY conf.d/oidc.conf /etc/apache2/conf.d/oidc.conf
 
 COPY html /var/www/html
 COPY entrypoint.sh /entrypoint.sh

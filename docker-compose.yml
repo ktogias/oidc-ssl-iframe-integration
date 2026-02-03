@@ -4,25 +4,21 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.2
     container_name: keycloak
-    command:
-      - start
-      - --optimized
-      - --import-realm
+    user: "0"
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      OIDC_PARTNER_PROXY_SECRET: ${OIDC_PARTNER_PROXY_SECRET:-change-me}
     volumes:
       - ./infra/keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf:ro
-      - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./infra/keycloak/realm-export.json.template:/opt/keycloak/data/import/realm-export.json.template:ro
       - ./infra/certs/keycloak-dev.crt:/opt/keycloak/conf/tls/keycloak-dev.crt:ro
       - ./infra/certs/keycloak-dev.key:/opt/keycloak/conf/tls/keycloak-dev.key:ro
       - ./infra/certs/portal-dev-ca.jks:/opt/keycloak/conf/tls/portal-dev-ca.jks:ro
+      - ./infra/keycloak/start.sh:/opt/keycloak/bin/start-with-import.sh:ro
     ports:
       - "8443:8443"
-    networks:
-      oidc-net:
-        aliases:
-          - keycloak.localhost
+    entrypoint: ["/opt/keycloak/bin/start-with-import.sh"]
 
   portal:
     build:
@@ -30,10 +26,8 @@ services:
     container_name: portal
     ports:
       - "4200:80"
-    networks:
-      oidc-net:
-        aliases:
-          - portal
+    depends_on:
+      - keycloak
 
   partner:
     build:
@@ -41,10 +35,8 @@ services:
     container_name: partner
     expose:
       - "8080"
-    networks:
-      oidc-net:
-        aliases:
-          - partner
+    depends_on:
+      - keycloak
 
   apache:
     build:
@@ -59,15 +51,7 @@ services:
       OIDC_CRYPTO_PASSPHRASE: ${OIDC_CRYPTO_PASSPHRASE:-change-me}
     volumes:
       - ./infra/certs:/etc/apache2/tls:ro
+      - ./infra/apache/sites/portal.conf.template:/etc/apache2/sites-available/portal.conf.template:ro
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      oidc-net:
-        aliases:
-          - portal.localhost
-          - partner.localhost
-
-networks:
-  oidc-net:
-    driver: bridge

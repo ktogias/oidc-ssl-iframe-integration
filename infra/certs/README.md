@@ -24,7 +24,7 @@ Development builds reuse a single internal certificate authority (CA) so both Ap
    EOT
    )
    ```
-3. **Issue a cert for Keycloak (`keycloak.localhost`)**
+3. **Issue a cert for Keycloak (`keycloak.localhost` + plain `keycloak`)**
    ```bash
    openssl req -new -nodes \
      -subj "/C=US/ST=CA/O=PortalDev/CN=keycloak.localhost" \
@@ -33,7 +33,7 @@ Development builds reuse a single internal certificate authority (CA) so both Ap
      -in keycloak-dev.csr -CA portal-dev-ca.crt -CAkey portal-dev-ca.key -CAcreateserial \
      -out keycloak-dev.crt -extensions v3_req -extfile <(cat <<'EOT'
    [v3_req]
-   subjectAltName=DNS:keycloak.localhost
+   subjectAltName=DNS:keycloak.localhost,DNS:keycloak
    EOT
    )
    ```
