@@ -78,16 +78,16 @@
   ],
   "users": [
     {
-      "username": "${DEMO_USER_USERNAME}",
+      "username": "__DEMO_USER_USERNAME__",
       "enabled": true,
       "emailVerified": true,
-      "email": "${DEMO_USER_EMAIL}",
-      "firstName": "${DEMO_USER_FIRST_NAME}",
-      "lastName": "${DEMO_USER_LAST_NAME}",
+      "email": "__DEMO_USER_EMAIL__",
+      "firstName": "__DEMO_USER_FIRST_NAME__",
+      "lastName": "__DEMO_USER_LAST_NAME__",
       "credentials": [
         {
           "type": "password",
-          "value": "${DEMO_USER_PASSWORD}",
+          "value": "__DEMO_USER_PASSWORD__",
           "temporary": true
         }
       ],

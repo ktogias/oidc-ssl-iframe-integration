@@ -2,9 +2,6 @@ FROM quay.io/keycloak/keycloak:24.0.2
 
 USER root
 
-RUN microdnf install -y gettext \
-    && microdnf clean all
-
 COPY keycloak.conf /opt/keycloak/conf/keycloak.conf
 RUN mkdir -p /opt/keycloak/data/import
 COPY realm-export.json.template /opt/keycloak/data/import/realm-export.json.template
