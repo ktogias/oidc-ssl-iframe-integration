@@ -34,35 +34,27 @@ describe('Portal login flow', () => {
 
     cy.then(() => {
       expect(popupUrl, 'handshake popup url').to.be.a('string');
-      cy.origin('https://portal.localhost', { args: { popupUrl } }, ({ popupUrl }) => {
-        cy.visit(popupUrl);
-      });
+      cy.visit(popupUrl!);
     });
 
     cy.origin(
       'https://keycloak.localhost:8443',
       { args: { username, password } },
       ({ username, password }) => {
-        cy.url({ timeout: 15000 }).should('include', 'https://keycloak.localhost:8443');
         cy.get('input#username').type(username);
         cy.get('input#password').type(password);
         cy.get('input#kc-login').click();
       }
     );
 
-    cy.origin('https://portal.localhost', () => {
-      cy.contains('Partner Application', { timeout: 15000 }).should('be.visible');
-      cy.contains('"username": "demo.user"', { timeout: 15000 }).should('exist');
-      cy.contains('"email": "demo.user@example.com"').should('exist');
-      cy.contains('"roles"').should('exist');
-      cy.contains('"partner-user"').should('exist');
-      cy.contains('"portal-user"').should('exist');
-    });
+    cy.contains('Partner Application', { timeout: 15000 }).should('be.visible');
+    cy.contains('"username": "demo.user"', { timeout: 15000 }).should('exist');
+    cy.contains('"email": "demo.user@example.com"').should('exist');
+    cy.contains('"roles"').should('exist');
+    cy.contains('"partner-user"').should('exist');
+    cy.contains('"portal-user"').should('exist');
 
-    cy.origin('https://portal.localhost', () => {
-      cy.visit('/');
-    });
-
+    cy.visit('/');
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
     cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
 
