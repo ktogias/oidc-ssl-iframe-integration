@@ -3,20 +3,7 @@ const password = Cypress.env('PORTAL_PASSWORD') as string;
 
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
-    let handshakeResponse: Cypress.Response<any> | undefined;
-
     cy.visit('/');
-
-    cy.window().then((win) => {
-      cy.stub(win, 'open')
-        .callsFake((url: string) => {
-          cy.request({ url, followRedirect: true }).then((resp) => {
-            handshakeResponse = resp;
-          });
-          return { closed: false, close() {} } as Window;
-        })
-        .as('handshakePopup');
-    });
 
     cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
     cy.origin(
@@ -33,15 +20,28 @@ describe('Portal login flow', () => {
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
     cy.contains('Demo User').should('exist');
 
+    cy.window().then((win) => {
+      cy.stub(win, 'open')
+        .callsFake((url: string) => {
+          const fakeWindow: Window = {
+            closed: false,
+            close() {
+              this.closed = true;
+            },
+          } as Window;
+
+          cy.visit(url).then(() => {
+            win.postMessage({ type: 'partner-handshake-complete' }, win.location.origin);
+            fakeWindow.close();
+          });
+
+          return fakeWindow;
+        })
+        .as('handshakePopup');
+    });
+
     cy.contains('Connect partner session').click();
     cy.get('@handshakePopup').should('have.been.called');
-
-    cy.then(() => {
-      expect(handshakeResponse, 'handshake response').to.exist;
-      cy.window().then((win) => {
-        win.postMessage({ type: 'partner-handshake-complete' }, win.location.origin);
-      });
-    });
 
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
     cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
