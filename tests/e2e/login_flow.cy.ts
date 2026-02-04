@@ -1,30 +1,35 @@
 const username = Cypress.env('PORTAL_USERNAME') as string;
 const password = Cypress.env('PORTAL_PASSWORD') as string;
 
+const completePortalLogin = () => {
+  cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
+  cy.origin(
+    'https://keycloak.localhost:8443',
+    { args: { username, password } },
+    ({ username, password }) => {
+      cy.get('input#username').clear().type(username);
+      cy.get('input#password').clear().type(password);
+      cy.get('input#kc-login').click();
+    }
+  );
+  cy.url({ timeout: 20000 }).should('include', 'https://portal.localhost');
+};
+
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
     cy.visit('/');
-    cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
+    completePortalLogin();
 
-    cy.origin(
-      'https://keycloak.localhost:8443',
-      { args: { username, password } },
-      ({ username, password }) => {
-        cy.get('input#username').clear().type(username);
-        cy.get('input#password').clear().type(password);
-        cy.get('input#kc-login').click();
-      }
-    );
-
-    cy.url({ timeout: 20000 }).should('include', 'https://portal.localhost');
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
     cy.contains('Demo User').should('exist');
 
-    let handshakeUrl: string | undefined;
+    let handshakeResponse: Cypress.Response<any> | undefined;
     cy.window().then((win) => {
       cy.stub(win, 'open')
         .callsFake((url: string) => {
-          handshakeUrl = url;
+          cy.request({ url, followRedirect: true }).then((resp) => {
+            handshakeResponse = resp;
+          });
           return { closed: false, close() {} } as Window;
         })
         .as('handshakePopup');
@@ -34,12 +39,16 @@ describe('Portal login flow', () => {
     cy.get('@handshakePopup').should('have.been.called');
 
     cy.then(() => {
-      expect(handshakeUrl, 'handshakeUrl').to.be.a('string');
-      cy.request({ url: handshakeUrl!, followRedirect: true });
-    });
-
-    cy.window().then((win) => {
-      win.postMessage({ type: 'partner-handshake-complete' }, win.location.origin);
+      expect(handshakeResponse, 'handshake response').to.exist;
+      const setCookieHeader = handshakeResponse!.headers['set-cookie'] as string[] | string | undefined;
+      if (setCookieHeader) {
+        const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+        cookies.forEach((cookie) => {
+          const [pair] = cookie.split(';');
+          const [name, value] = pair.split('=');
+          cy.setCookie(name.trim(), value.trim());
+        });
+      }
     });
 
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
