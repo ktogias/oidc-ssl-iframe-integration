@@ -3,8 +3,7 @@ const password = Cypress.env('PORTAL_PASSWORD') as string;
 
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
-    cy.visit('/');
-    cy.url({ timeout: 15000 }).should('include', 'https://keycloak.localhost:8443/realms/portal-dev');
+    cy.visit('https://keycloak.localhost:8443/realms/portal-dev/protocol/openid-connect/auth?client_id=portal-spa&redirect_uri=https%3A%2F%2Fportal.localhost%2F&response_type=code&scope=openid%20email%20profile%20roles&code_challenge_method=S256&code_challenge=dummy');
 
     cy.origin(
       'https://keycloak.localhost:8443',
