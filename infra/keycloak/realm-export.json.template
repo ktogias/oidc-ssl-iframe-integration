@@ -92,6 +92,8 @@
         }
       ],
       "realmRoles": [
+        "portal-user",
+        "partner-user",
         "offline_access"
       ]
     }
