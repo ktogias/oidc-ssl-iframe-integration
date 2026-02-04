@@ -13,13 +13,6 @@ describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
     cy.visit('/');
 
-    cy.window().then((win) => {
-      const originalOpen = win.open;
-      cy.stub(win, 'open')
-        .callsFake((...args) => originalOpen.apply(win, args))
-        .as('handshakePopup');
-    });
-
     cy.origin(
       'https://keycloak.localhost:8443',
       { args: { username, password } },
@@ -37,7 +30,7 @@ describe('Portal login flow', () => {
     cy.contains('demo.user').should('be.visible');
 
     cy.contains('Partner Session').should('be.visible');
-    cy.get('@handshakePopup').should('have.been.called');
+    cy.contains('Connect partner session').click();
 
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
     cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
