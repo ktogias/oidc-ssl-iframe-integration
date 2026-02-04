@@ -1,36 +1,37 @@
 const username = Cypress.env('PORTAL_USERNAME') as string;
 const password = Cypress.env('PORTAL_PASSWORD') as string;
 
+const loginIfNeeded = () => {
+  cy.url({ timeout: 15000 }).then((currentUrl) => {
+    if (currentUrl.includes('keycloak.localhost:8443')) {
+      cy.origin(
+        'https://keycloak.localhost:8443',
+        { args: { username, password } },
+        ({ username, password }) => {
+          cy.get('body').then(($body) => {
+            if ($body.find('input#username').length) {
+              cy.get('input#username').type(username);
+              cy.get('input#password').type(password);
+              cy.get('input#kc-login').click();
+            }
+          });
+        }
+      );
+    }
+  });
+};
+
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
-    cy.visit('https://keycloak.localhost:8443/realms/portal-dev/protocol/openid-connect/auth?client_id=portal-spa&redirect_uri=https%3A%2F%2Fportal.localhost%2F&response_type=code&scope=openid%20email%20profile%20roles&code_challenge_method=S256&code_challenge=dummy');
-
-    cy.origin(
-      'https://keycloak.localhost:8443',
-      { args: { username, password } },
-      ({ username, password }) => {
-        cy.get('input#username').type(username);
-        cy.get('input#password').type(password);
-        cy.get('input#kc-login').click();
-      }
-    );
-
+    cy.visit('/');
+    loginIfNeeded();
     cy.url({ timeout: 15000 }).should('include', 'https://portal.localhost');
     cy.contains('Portal Dashboard', { timeout: 15000 }).should('be.visible');
     cy.contains('Demo User').should('be.visible');
 
     cy.visit('/partner/?popup_handshake=true');
-
-    cy.origin('https://keycloak.localhost:8443', { args: { username, password } }, ({ username, password }) => {
-      cy.get('body').then(($body) => {
-        if ($body.find('input#username').length) {
-          cy.get('input#username').type(username);
-          cy.get('input#password').type(password);
-          cy.get('input#kc-login').click();
-        }
-      });
-    });
-
+    loginIfNeeded();
+    cy.url({ timeout: 15000 }).should('include', 'https://portal.localhost/partner');
     cy.contains('Partner Application', { timeout: 15000 }).should('be.visible');
     cy.contains('"username": "demo.user"', { timeout: 15000 }).should('exist');
     cy.contains('"email": "demo.user@example.com"').should('exist');
