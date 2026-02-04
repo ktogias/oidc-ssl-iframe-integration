@@ -178,10 +178,12 @@ The compose file lives at the repository root and wires the following services:
   execute the specs under `src/**/*.spec.ts`. Use `npm run test:watch` for TDD
   loops and `npm run lint` to keep ESLint happy before pushing.
 - **Cypress e2e** – the `tests/` workspace hosts Cypress 13. Install deps with
-  `npm install` in that directory and execute `npm run cy:run` (after
-  `docker compose up --build -d`). Set `CYPRESS_BASE_URL` to point at a remote
-  stack if you are not using `https://portal.localhost`. Headless runs may need
-  `--no-sandbox` in constrained environments.
+  `npm install` there and execute
+  `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu" npm run cy:run -- --browser electron --headless`
+  (the extra args avoid Chromium sandbox issues on restricted hosts). Set
+  `CYPRESS_PORTAL_USERNAME` / `CYPRESS_PORTAL_PASSWORD` if you change the demo
+  credentials; otherwise the defaults (`demo.user` / `changeMe123`) are used.
+  The suite uses `cy.origin()` to complete the Keycloak login automatically.
 - **Smoke script** – `./scripts/smoke.sh` still pings the portal + partner
   endpoints for a quick readiness probe.
 

@@ -18,7 +18,10 @@ IdP and rebuild whenever vhosts or certs change. `npm run lint`, `npm run test`,
 and `npm run build` inside `infra/portal/app` cover the Angular portal.
 `markdownlint README.md AGENTS.md CLAUDE.md` keeps docs tidy. The Cypress
 workspace under `tests/` exposes `npm run cy:run`, `cy:open`, and `cy:verify`
-once you install npm deps. Record any mkcert or openssl commands used to
+once you install npm deps. Pass `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox
+--disable-gpu"` when running headless Electron in sandboxes, and configure
+`CYPRESS_PORTAL_USERNAME` / `CYPRESS_PORTAL_PASSWORD` if the demo credentials
+change. Record any mkcert or openssl commands used to
 generate local certificates.
 
 ## Coding Style & Naming Conventions
