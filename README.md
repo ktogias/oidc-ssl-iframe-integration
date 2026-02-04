@@ -60,10 +60,10 @@ sequenceDiagram
 - Enforce OAuth2 on partner paths, injecting user info headers (e.g., `X-User-Email`) before forwarding downstream.
 
 ## Configuration Artifacts
-- `infra/keycloak/realm-export.json` – realm export describing the `portal-spa` and `partner-proxy` clients plus demo users/roles.
-- `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config pointing to mounted certificates.
+- `infra/keycloak/realm-export.json.template` – realm definition for the `portal-spa` and `partner-proxy` clients plus demo users/roles; rendered by the custom entrypoint before startup.
+- `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config copied into the custom image built from `infra/keycloak/Dockerfile`.
 - `infra/portal/app/src/assets/keycloak.json` – Angular `KeycloakConfig` payload consumed by `keycloak-angular` during bootstrap.
-- `infra/apache/conf.d/ssl.conf` & `infra/apache/conf.d/oidc.conf` – virtual host proxying logic plus `mod_auth_openidc` directives for `/partner/*`.
+- `infra/apache/sites/portal.conf.template` – env-templated Apache vhost baked into the image and rendered at runtime by `entrypoint.sh`.
 - `infra/apache/html/oidc_popup_callback.html` – popup callback served by Apache for the partner OAuth2 flow.
 - `infra/certs/README.md` – instructions to mint the shared dev certificate authority and per-service certs (ignored by git).
 - `infra/partner/app` – Flask backend exposed through Apache; surfaces forwarded identity headers via `GET /claims`.
@@ -74,8 +74,10 @@ sequenceDiagram
 3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or accept the warning). The `.localhost` suffix resolves to `127.0.0.1` automatically on modern systems, so no manual hosts entries are required.
 4. Launch the stack: `docker compose up --build`. Keycloak becomes available at `https://keycloak.localhost:8443`, while Apache listens on `https://portal.localhost` and proxies traffic to the portal + partner containers. Visit `https://portal.localhost` to view the Angular portal stub and `https://portal.localhost/partner/claims` to hit the partner API behind the OIDC-protected route.
 
+> **Note:** Changes to `infra/apache/sites/portal.conf.template` or any file under `infra/keycloak/` now require `docker compose build apache keycloak` (or `docker compose up --build`) because those assets are bundled into their respective images.
+
 The compose file lives at the repository root and wires the following services:
-- `keycloak` (imports `infra/keycloak/realm-export.json` automatically on startup)
+- `keycloak` (builds from `infra/keycloak/Dockerfile`, renders `realm-export.json` from the template, and imports it automatically on startup)
 - `portal` (Angular app built from `infra/portal/app`, served via Nginx, bootstrapping Keycloak on load)
 - `partner` (Flask backend listening on port 8080, echoing identity headers)
 - `apache-gateway` (builds from `infra/apache`, loads the TLS material from `infra/certs`, and enforces OIDC for `/partner/*`).
