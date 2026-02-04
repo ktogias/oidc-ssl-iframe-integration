@@ -3,9 +3,22 @@ const password = Cypress.env('PORTAL_PASSWORD') as string;
 
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
-    cy.visit('/');
-    cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
+    let handshakeResponse: Cypress.Response<any> | undefined;
 
+    cy.visit('/');
+
+    cy.window().then((win) => {
+      cy.stub(win, 'open')
+        .callsFake((url: string) => {
+          cy.request({ url, followRedirect: true }).then((resp) => {
+            handshakeResponse = resp;
+          });
+          return { closed: false, close() {} } as Window;
+        })
+        .as('handshakePopup');
+    });
+
+    cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
     cy.origin(
       'https://keycloak.localhost:8443',
       { args: { username, password } },
@@ -19,18 +32,6 @@ describe('Portal login flow', () => {
     cy.url({ timeout: 20000 }).should('include', 'https://portal.localhost');
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
     cy.contains('Demo User').should('exist');
-
-    let handshakeResponse: Cypress.Response<any> | undefined;
-    cy.window().then((win) => {
-      cy.stub(win, 'open')
-        .callsFake((url: string) => {
-          cy.request({ url, followRedirect: true }).then((resp) => {
-            handshakeResponse = resp;
-          });
-          return { closed: false, close() {} } as Window;
-        })
-        .as('handshakePopup');
-    });
 
     cy.contains('Connect partner session').click();
     cy.get('@handshakePopup').should('have.been.called');
