@@ -179,11 +179,12 @@ The compose file lives at the repository root and wires the following services:
   loops and `npm run lint` to keep ESLint happy before pushing.
 - **Cypress e2e** – the `tests/` workspace hosts Cypress 13. Install deps with
   `npm install` there and execute
-  `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu" npm run cy:run -- --browser electron --headless`
-  (the extra args avoid Chromium sandbox issues on restricted hosts). Set
-  `CYPRESS_PORTAL_USERNAME` / `CYPRESS_PORTAL_PASSWORD` if you change the demo
-  credentials; otherwise the defaults (`demo.user` / `changeMe123`) are used.
-  The suite uses `cy.origin()` to complete the Keycloak login automatically.
+  `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu" npm run cy:run -- \
+  --browser electron --headless` (extra args avoid Chromium sandbox issues on
+  restricted hosts). Set `CYPRESS_PORTAL_USERNAME` /
+  `CYPRESS_PORTAL_PASSWORD` if you change the demo credentials; otherwise the
+  defaults (`demo.user` / `changeMe123`) are used. The suite uses `cy.origin()`
+  to complete the Keycloak login automatically.
 - **Smoke script** – `./scripts/smoke.sh` still pings the portal + partner
   endpoints for a quick readiness probe.
 
