@@ -1,4 +1,5 @@
-import { buildDisplayName } from '../utils/token-claims';
+import { describe, expect, it } from 'vitest';
+import { buildDisplayName } from './token-claims';
 
 describe('buildDisplayName', () => {
   it('returns full name when available', () => {

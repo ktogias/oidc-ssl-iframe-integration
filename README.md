@@ -174,9 +174,9 @@ The compose file lives at the repository root and wires the following services:
 
 ## Testing
 
-- **Jest unit tests** – run `npm run test` inside `infra/portal/app` to execute
-  the utility/spec files under `src/app/__tests__`. Use `npm run test:watch` for
-  TDD loops and `npm run lint` to keep ESLint happy before pushing.
+- **Vitest unit tests** – run `npm run test` inside `infra/portal/app` to
+  execute the specs under `src/**/*.spec.ts`. Use `npm run test:watch` for TDD
+  loops and `npm run lint` to keep ESLint happy before pushing.
 - **Cypress e2e** – the `tests/` workspace hosts Cypress 13. Install deps with
   `npm install` in that directory and execute `npm run cy:run` (after
   `docker compose up --build -d`). Set `CYPRESS_BASE_URL` to point at a remote

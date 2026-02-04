@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/out-tsc/spec",
-    "types": ["jest", "node"],
-    "module": "CommonJS",
+    "types": ["vitest/globals", "node"],
+    "module": "ESNext",
     "target": "ES2022",
     "moduleResolution": "node",
     "esModuleInterop": true

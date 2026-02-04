@@ -31,7 +31,7 @@ deviating from module defaults. Always run ESLint + Prettier prior to commits.
 
 ## Testing Guidelines
 
-Write Jest unit tests under `infra/portal/app/src/app/__tests__` (target shared
+Write Vitest unit tests under `infra/portal/app/src/**/*.spec.ts` (target shared
 utilities or client-side helpers). Place Cypress specs in `tests/e2e` and name
 them for the covered flow (`login_flow.cy.ts`). Provide sanitized fixtures in
 `tests/fixtures/` plus an `.env.test` for deterministic secrets. Target full
