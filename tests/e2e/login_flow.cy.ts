@@ -23,34 +23,17 @@ describe('Portal login flow', () => {
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
     cy.contains('Demo User').should('exist');
 
-    let handshakeResponse: Cypress.Response<any> | undefined;
-    cy.window().then((win) => {
-      cy.stub(win, 'open')
-        .callsFake((url: string) => {
-          cy.request({ url, followRedirect: true }).then((resp) => {
-            handshakeResponse = resp;
-          });
-          return { closed: false, close() {} } as Window;
-        })
-        .as('handshakePopup');
-    });
+    cy.visit('/partner/?popup_handshake=true');
+    completePortalLogin();
 
-    cy.contains('Connect partner session').click();
-    cy.get('@handshakePopup').should('have.been.called');
+    cy.url({ timeout: 20000 }).should('include', '/partner');
+    cy.contains('Partner Application', { timeout: 20000 }).should('be.visible');
+    cy.contains('"username": "demo.user"', { timeout: 20000 }).should('exist');
+    cy.contains('"email": "demo.user@example.com"').should('exist');
+    cy.contains('"partner-user"').should('exist');
+    cy.contains('"portal-user"').should('exist');
 
-    cy.then(() => {
-      expect(handshakeResponse, 'handshake response').to.exist;
-      const setCookieHeader = handshakeResponse!.headers['set-cookie'] as string[] | string | undefined;
-      if (setCookieHeader) {
-        const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-        cookies.forEach((cookie) => {
-          const [pair] = cookie.split(';');
-          const [name, value] = pair.split('=');
-          cy.setCookie(name.trim(), value.trim());
-        });
-      }
-    });
-
+    cy.visit('/');
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
     cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
 
