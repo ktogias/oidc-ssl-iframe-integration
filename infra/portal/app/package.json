@@ -40,6 +40,7 @@
     "@typescript-eslint/parser": "^8.54.0",
     "@typescript-eslint/utils": "^8.54.0",
     "eslint": "^8.57.1",
+    "hono": "^4.11.7",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
