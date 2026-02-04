@@ -4,67 +4,82 @@
       <h1>{{ title }}</h1>
       <p class="subtitle">OIDC-authenticated portal embedding a partner app via iframe.</p>
     </div>
-    <button type="button" (click)="logout()" *ngIf="isAuthenticated">Logout</button>
+    @if (isAuthenticated) {
+      <button type="button" (click)="logout()">Logout</button>
+    }
   </header>
 
-  <section class="card" *ngIf="profile as user; else unauthenticated">
-    <h2>User Profile</h2>
-    <dl>
-      <div>
-        <dt>Name</dt>
-        <dd>{{ user.firstName }} {{ user.lastName }}</dd>
-      </div>
-      <div>
-        <dt>Username</dt>
-        <dd>{{ user.username }}</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{{ user.email }}</dd>
-      </div>
-    </dl>
-  </section>
+  @if (profile; as user) {
+    <section class="card">
+      <h2>User Profile</h2>
+      <dl>
+        <div>
+          <dt>Name</dt>
+          <dd>{{ user.firstName }} {{ user.lastName }}</dd>
+        </div>
+        <div>
+          <dt>Username</dt>
+          <dd>{{ user.username }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email }}</dd>
+        </div>
+      </dl>
+    </section>
+  } @else {
+    <section class="card warning">
+      <p>Authenticating with Keycloak…</p>
+    </section>
+  }
 
-  <section class="card" *ngIf="tokenClaims">
-    <h2>ID Token Claims</h2>
-    <pre>{{ tokenClaims | json }}</pre>
-  </section>
+  @if (tokenClaims) {
+    <section class="card">
+      <h2>ID Token Claims</h2>
+      <pre>{{ tokenClaims | json }}</pre>
+    </section>
+  }
 
-  <section class="card partner-actions" *ngIf="isAuthenticated">
-    <div>
-      <h2>Partner Session</h2>
-      <p>Open a secure popup to complete the partner OIDC handshake before loading the iframe.</p>
-    </div>
-    <div class="actions">
-      <button
-        type="button"
-        (click)="connectPartnerSession()"
-        [disabled]="partnerReady || partnerConnectLoading"
-      >
-        <ng-container *ngIf="partnerReady; else connectLabel">Partner connected</ng-container>
-      </button>
-      <ng-template #connectLabel>
-        {{ partnerConnectLoading ? 'Connecting…' : 'Connect partner session' }}
-      </ng-template>
-      <p class="status success" *ngIf="partnerReady">Iframe session established.</p>
-      <p class="status error" *ngIf="partnerError">{{ partnerError }}</p>
-    </div>
-  </section>
+  @if (isAuthenticated) {
+    <section class="card partner-actions">
+      <div>
+        <h2>Partner Session</h2>
+        <p>Open a secure popup to complete the partner OIDC handshake before loading the iframe.</p>
+      </div>
+      <div class="actions">
+        <button
+          type="button"
+          (click)="connectPartnerSession()"
+          [disabled]="partnerReady || partnerConnectLoading"
+          >
+          @if (partnerReady) {
+            Partner connected
+          } @else {
+            {{ partnerConnectLoading ? 'Connecting…' : 'Connect partner session' }}
+          }
+        </button>
+        @if (partnerReady) {
+          <p class="status success">Iframe session established.</p>
+        }
+        @if (partnerError) {
+          <p class="status error">{{ partnerError }}</p>
+        }
+      </div>
+    </section>
+  }
 
-  <section class="iframe-shell" *ngIf="partnerReady; else partnerPending">
-    <h2>Partner Application</h2>
-    <iframe src="/partner/" title="Partner application" loading="lazy"></iframe>
-  </section>
+  @if (partnerReady) {
+    <section class="iframe-shell">
+      <h2>Partner Application</h2>
+      <iframe src="/partner/" title="Partner application" loading="lazy"></iframe>
+    </section>
+  } @else {
+    @if (isAuthenticated) {
+      <section class="card warning">
+        <p>Launch the partner session using the button above to display the iframe.</p>
+      </section>
+    }
+  }
 </div>
 
-<ng-template #unauthenticated>
-  <section class="card warning">
-    <p>Authenticating with Keycloak…</p>
-  </section>
-</ng-template>
 
-<ng-template #partnerPending>
-  <section class="card warning" *ngIf="isAuthenticated">
-    <p>Launch the partner session using the button above to display the iframe.</p>
-  </section>
-</ng-template>

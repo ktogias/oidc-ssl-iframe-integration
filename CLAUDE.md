@@ -13,7 +13,7 @@ Full stack is live:
 
 - `docker-compose.yml` brings up Keycloak, Apache gateway, Angular portal, and
   partner service.
-- Frontend lives under `infra/portal/app` (Angular 17 w/ ESLint). Run
+- Frontend lives under `infra/portal/app` (Angular 21 w/ ESLint). Run
   `npm install`, `npm run lint`, and `npm run build` as needed.
 - Partner backend sits at `infra/partner/app` (Flask). Container build happens
   via `infra/partner/Dockerfile`.

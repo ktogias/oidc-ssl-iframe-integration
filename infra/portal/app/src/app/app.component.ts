@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { KeycloakProfile } from 'keycloak-js';
 import { KeycloakService } from 'keycloak-angular';
 
@@ -8,7 +8,7 @@ import { KeycloakService } from 'keycloak-angular';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Portal Dashboard';
@@ -33,7 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   };
 
-  constructor(private readonly keycloak: KeycloakService) {}
+  private readonly keycloak = inject(KeycloakService);
 
   async ngOnInit(): Promise<void> {
     window.addEventListener('message', this.messageHandler);
