@@ -1,19 +1,55 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Keep infrastructure artifacts under `infra/` (Docker Compose files, TLS scripts, IdP bootstrap helpers) and treat `src/proxy/` as the home for Apache vhosts plus `mod_auth_openidc` snippets. Place the iframe shim, shared utilities, and npm tooling inside `src/iframe-client/`, while all Cypress specs, fixtures, and artifacts live in `tests/`. Defaults belong in `.env.example`, optional overrides in `docs/configuration.md`, architecture visuals in `docs/architecture/`, and prerequisite callouts in `docs/prerequisites.md`.
+
+Keep infrastructure artifacts under `infra/` (Docker Compose files, TLS scripts,
+IdP bootstrap helpers) and treat `src/proxy/` as the home for Apache vhosts plus
+`mod_auth_openidc` snippets. Place the iframe shim, shared utilities, and npm
+assets inside `src/iframe-client/`, while Cypress specs, fixtures, and artifacts
+live in `tests/`. Defaults belong in `.env.example`, optional overrides in
+`docs/configuration.md`, architecture visuals in `docs/architecture/`, and
+prerequisite callouts in `docs/prerequisites.md`.
 
 ## Build, Test, and Development Commands
-Use Docker + Make for orchestration. Run `docker compose -f infra/docker-compose.yml up --build proxy idp` to start Apache with the sample IdP and rebuild whenever vhosts or certs change. `make lint` (or `npm run lint` inside `src/iframe-client`) applies ESLint + Prettier. Execute `make e2e` for the Cypress iframe handshake, and `markdownlint README.md AGENTS.md` before doc-only pull requests. Record any mkcert or openssl commands you used while generating local certificates.
+
+Use Docker + Make for orchestration. Run `docker compose -f
+infra/docker-compose.yml up --build proxy idp` to start Apache with the sample
+IdP and rebuild whenever vhosts or certs change. `make lint` (or `npm run lint`
+inside `src/iframe-client`) applies ESLint + Prettier. Execute `make e2e` for
+the Cypress iframe handshake, and `markdownlint README.md AGENTS.md` before
+doc-only pull requests. Record any mkcert or openssl commands used to generate
+local certificates.
 
 ## Coding Style & Naming Conventions
-Adhere to 2-space indentation for YAML/JSON, 4 spaces for Apache configs, and Prettier defaults for TypeScript. Use kebab-case for directories (`src/iframe-client`), snake_case for shell helpers, and UpperCamelCase for exported TS classes. Group Apache directives logically (SSL → auth → proxy) and leave inline comments when deviating from module defaults. Always run ESLint + Prettier prior to commits.
+
+Use 2-space indentation for YAML/JSON, 4 spaces for Apache configs, and Prettier
+defaults for TypeScript. Favor kebab-case for directories (`src/iframe-client`),
+snake_case for shell helpers, and UpperCamelCase for exported TS classes. Group
+Apache directives logically (SSL → auth → proxy) and leave inline comments when
+deviating from module defaults. Always run ESLint + Prettier prior to commits.
 
 ## Testing Guidelines
-Author Jest unit tests under `src/iframe-client/__tests__` and name them for the component or hook exercised. Cypress specs belong in `tests/e2e` and should describe the covered flow (`login_flow.spec.ts`). Provide sanitized fixtures in `tests/fixtures/` plus an `.env.test` for deterministic secrets. Target full branch coverage on the iframe shim and capture at least one upstream/downstream OIDC round trip per PR. Drop HAR files or recordings under `tests/artifacts/` whenever `mod_auth_openidc` behavior changes.
+
+Write Jest unit tests under `src/iframe-client/__tests__` and name them for the
+component or hook exercised. Place Cypress specs in `tests/e2e` and describe the
+covered flow (`login_flow.spec.ts`). Provide sanitized fixtures in
+`tests/fixtures/` plus an `.env.test` for deterministic secrets. Target full
+branch coverage on the iframe shim and capture at least one upstream/downstream
+OIDC round trip per PR. Drop HAR files or recordings under `tests/artifacts/`
+whenever `mod_auth_openidc` behavior changes.
 
 ## Commit & Pull Request Guidelines
-Craft imperative commit subjects ≤72 characters (e.g., `Add proxy template`) and wrap body text near 100 characters with rationale plus testing notes. Pull requests must link issues, enumerate local commands executed, and attach screenshots or HAR snippets for UI or auth-flow tweaks. Request review from someone comfortable with TLS/OIDC and wait for green CI before merging.
+
+Craft imperative commit subjects ≤72 characters (e.g., `Add proxy template`) and
+wrap body text near 100 characters with rationale plus testing notes. Pull
+requests must link issues, enumerate local commands executed, and attach
+screenshots or HAR snippets for UI or auth-flow tweaks. Request review from
+someone comfortable with TLS/OIDC and wait for green CI before merging.
 
 ## Security & Configuration Tips
-Never commit live certificates, IdP secrets, or bearer tokens; keep only redacted samples inside `infra/certs/example/` and ensure `.env*` stays ignored. Redact sensitive values in HAR captures, document new RBAC scopes, client IDs, redirect URIs, or TLS requirements in `docs/security.md`, and note any additional trust stores consumers must install.
+
+Never commit live certificates, IdP secrets, or bearer tokens; keep only
+redacted samples inside `infra/certs/example/` and ensure `.env*` stays ignored.
+Redact sensitive values in HAR captures, document new RBAC scopes, client IDs,
+redirect URIs, or TLS requirements in `docs/security.md`, and note any
+additional trust stores consumers must install.
