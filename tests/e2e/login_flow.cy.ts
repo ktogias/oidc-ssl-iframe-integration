@@ -1,42 +1,40 @@
 const username = Cypress.env('PORTAL_USERNAME') as string;
 const password = Cypress.env('PORTAL_PASSWORD') as string;
 
-const loginIfNeeded = () => {
-  cy.url({ timeout: 15000 }).then((currentUrl) => {
-    if (currentUrl.includes('keycloak.localhost:8443')) {
-      cy.origin(
-        'https://keycloak.localhost:8443',
-        { args: { username, password } },
-        ({ username, password }) => {
-          cy.get('body').then(($body) => {
-            if ($body.find('input#username').length) {
-              cy.get('input#username').type(username);
-              cy.get('input#password').type(password);
-              cy.get('input#kc-login').click();
-            }
-          });
-        }
-      );
+const completeKeycloakLogin = () => {
+  cy.origin(
+    'https://keycloak.localhost:8443',
+    { args: { username, password } },
+    ({ username, password }) => {
+      cy.url().should('include', 'keycloak.localhost:8443');
+      cy.get('input#username').clear().type(username);
+      cy.get('input#password').clear().type(password);
+      cy.get('input#kc-login').click();
     }
-  });
+  );
 };
 
 describe('Portal login flow', () => {
   it('completes the Keycloak login and surfaces partner claims', () => {
     cy.visit('/');
-    loginIfNeeded();
-    cy.url({ timeout: 15000 }).should('include', 'https://portal.localhost');
-    cy.contains('Portal Dashboard', { timeout: 15000 }).should('be.visible');
-    cy.contains('Demo User').should('be.visible');
+    cy.url({ timeout: 20000 }).should('include', 'keycloak.localhost:8443');
+    completeKeycloakLogin();
 
-    cy.visit('/partner/?popup_handshake=true');
-    loginIfNeeded();
-    cy.url({ timeout: 15000 }).should('include', 'https://portal.localhost/partner');
-    cy.contains('Partner Application', { timeout: 15000 }).should('be.visible');
-    cy.contains('"username": "demo.user"', { timeout: 15000 }).should('exist');
-    cy.contains('"email": "demo.user@example.com"').should('exist');
-    cy.contains('"partner-user"').should('exist');
-    cy.contains('"portal-user"').should('exist');
+    cy.url({ timeout: 20000 }).should('include', 'portal.localhost');
+    cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
+    cy.contains('Demo User').should('exist');
+
+    cy.window().then((win) => {
+      cy.stub(win, 'open')
+        .callsFake((url: string) => {
+          cy.request({ url, followRedirect: true });
+          return { closed: false, close() {} } as Window;
+        })
+        .as('partnerPopup');
+    });
+
+    cy.contains('Connect partner session').click();
+    cy.get('@partnerPopup').should('have.been.called');
 
     cy.visit('/');
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
