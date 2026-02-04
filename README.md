@@ -131,6 +131,8 @@ sequenceDiagram
 
 - `infra/partner/app` – Flask backend exposed through Apache; surfaces
   forwarded identity headers via `GET /claims`.
+- `tests/` – Cypress workspace containing the e2e config (`cypress.config.ts`),
+  specs (`tests/e2e`), fixtures, and generated artifacts.
 
 ## Running with Docker Compose
 
@@ -169,6 +171,19 @@ The compose file lives at the repository root and wires the following services:
 
 - `apache-gateway` (builds from `infra/apache`, loads the TLS material from
   `infra/certs`, and enforces OIDC for `/partner/*`).
+
+## Testing
+
+- **Jest unit tests** – run `npm run test` inside `infra/portal/app` to execute
+  the utility/spec files under `src/app/__tests__`. Use `npm run test:watch` for
+  TDD loops and `npm run lint` to keep ESLint happy before pushing.
+- **Cypress e2e** – the `tests/` workspace hosts Cypress 13. Install deps with
+  `npm install` in that directory and execute `npm run cy:run` (after
+  `docker compose up --build -d`). Set `CYPRESS_BASE_URL` to point at a remote
+  stack if you are not using `https://portal.localhost`. Headless runs may need
+  `--no-sandbox` in constrained environments.
+- **Smoke script** – `./scripts/smoke.sh` still pings the portal + partner
+  endpoints for a quick readiness probe.
 
 ## Smoke Tests
 

@@ -1,0 +1,14 @@
+{
+  "name": "portal-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:verify": "cypress verify"
+  },
+  "devDependencies": {
+    "cypress": "^13.13.1",
+    "typescript": "~5.4.2"
+  }
+}

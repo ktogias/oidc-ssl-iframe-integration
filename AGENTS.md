@@ -14,11 +14,12 @@ prerequisite callouts in `docs/prerequisites.md`.
 
 Use Docker + Make for orchestration. Run `docker compose -f
 infra/docker-compose.yml up --build proxy idp` to start Apache with the sample
-IdP and rebuild whenever vhosts or certs change. `make lint` (or `npm run lint`
-inside `src/iframe-client`) applies ESLint + Prettier. Execute `make e2e` for
-the Cypress iframe handshake, and `markdownlint README.md AGENTS.md` before
-doc-only pull requests. Record any mkcert or openssl commands used to generate
-local certificates.
+IdP and rebuild whenever vhosts or certs change. `npm run lint`, `npm run test`,
+and `npm run build` inside `infra/portal/app` cover the Angular portal.
+`markdownlint README.md AGENTS.md CLAUDE.md` keeps docs tidy. The Cypress
+workspace under `tests/` exposes `npm run cy:run`, `cy:open`, and `cy:verify`
+once you install npm deps. Record any mkcert or openssl commands used to
+generate local certificates.
 
 ## Coding Style & Naming Conventions
 
@@ -30,9 +31,9 @@ deviating from module defaults. Always run ESLint + Prettier prior to commits.
 
 ## Testing Guidelines
 
-Write Jest unit tests under `src/iframe-client/__tests__` and name them for the
-component or hook exercised. Place Cypress specs in `tests/e2e` and describe the
-covered flow (`login_flow.spec.ts`). Provide sanitized fixtures in
+Write Jest unit tests under `infra/portal/app/src/app/__tests__` (target shared
+utilities or client-side helpers). Place Cypress specs in `tests/e2e` and name
+them for the covered flow (`login_flow.cy.ts`). Provide sanitized fixtures in
 `tests/fixtures/` plus an `.env.test` for deterministic secrets. Target full
 branch coverage on the iframe shim and capture at least one upstream/downstream
 OIDC round trip per PR. Drop HAR files or recordings under `tests/artifacts/`
