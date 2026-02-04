@@ -14,6 +14,7 @@ RUN a2enmod ssl headers proxy proxy_http proxy_wstunnel proxy_html rewrite auth_
     && a2dissite 000-default
 
 COPY html /var/www/html
+COPY sites/portal.conf.template /etc/apache2/sites-available/portal.conf.template
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

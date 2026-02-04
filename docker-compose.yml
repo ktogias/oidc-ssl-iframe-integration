@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0.2
+    build:
+      context: ./infra/keycloak
     container_name: keycloak
     user: "0"
     environment:
@@ -10,12 +11,9 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       OIDC_PARTNER_PROXY_SECRET: ${OIDC_PARTNER_PROXY_SECRET:-change-me}
     volumes:
-      - ./infra/keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf:ro
-      - ./infra/keycloak/realm-export.json.template:/opt/keycloak/data/import/realm-export.json.template:ro
       - ./infra/certs/keycloak-dev.crt:/opt/keycloak/conf/tls/keycloak-dev.crt:ro
       - ./infra/certs/keycloak-dev.key:/opt/keycloak/conf/tls/keycloak-dev.key:ro
       - ./infra/certs/portal-dev-ca.jks:/opt/keycloak/conf/tls/portal-dev-ca.jks:ro
-      - ./infra/keycloak/start.sh:/opt/keycloak/bin/start-with-import.sh:ro
     ports:
       - "8443:8443"
     entrypoint: ["/opt/keycloak/bin/start-with-import.sh"]
@@ -51,7 +49,6 @@ services:
       OIDC_CRYPTO_PASSPHRASE: ${OIDC_CRYPTO_PASSPHRASE:-change-me}
     volumes:
       - ./infra/certs:/etc/apache2/tls:ro
-      - ./infra/apache/sites/portal.conf.template:/etc/apache2/sites-available/portal.conf.template:ro
     ports:
       - "80:80"
       - "443:443"
