@@ -78,16 +78,16 @@
   ],
   "users": [
     {
-      "username": "demo.user",
+      "username": "${DEMO_USER_USERNAME}",
       "enabled": true,
       "emailVerified": true,
-      "email": "demo.user@example.com",
-      "firstName": "Demo",
-      "lastName": "User",
+      "email": "${DEMO_USER_EMAIL}",
+      "firstName": "${DEMO_USER_FIRST_NAME}",
+      "lastName": "${DEMO_USER_LAST_NAME}",
       "credentials": [
         {
           "type": "password",
-          "value": "changeMe123",
+          "value": "${DEMO_USER_PASSWORD}",
           "temporary": true
         }
       ],

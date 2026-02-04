@@ -10,6 +10,11 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       OIDC_PARTNER_PROXY_SECRET: ${OIDC_PARTNER_PROXY_SECRET:-change-me}
+      DEMO_USER_USERNAME: ${DEMO_USER_USERNAME:-demo.user}
+      DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-demo.user@example.com}
+      DEMO_USER_FIRST_NAME: ${DEMO_USER_FIRST_NAME:-Demo}
+      DEMO_USER_LAST_NAME: ${DEMO_USER_LAST_NAME:-User}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-changeMe123}
     volumes:
       - ./infra/certs/keycloak-dev.crt:/opt/keycloak/conf/tls/keycloak-dev.crt:ro
       - ./infra/certs/keycloak-dev.key:/opt/keycloak/conf/tls/keycloak-dev.key:ro

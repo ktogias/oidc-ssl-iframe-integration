@@ -111,7 +111,8 @@ sequenceDiagram
 
 - `infra/keycloak/realm-export.json.template` – realm definition for the
   `portal-spa` and `partner-proxy` clients plus demo users/roles; rendered by
-  the custom entrypoint before startup.
+  the custom entrypoint before startup using values supplied through the
+  `DEMO_USER_*` variables in `.env`.
 
 - `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config
   copied into the custom image built from `infra/keycloak/Dockerfile`.
@@ -137,8 +138,8 @@ sequenceDiagram
    the `.env` file, generates the CA + service certificates inside
    `infra/certs/`, and builds the Keycloak truststore used during startup.
 
-2. Optionally tweak `.env` if you need different admin credentials or proxy
-   secrets.
+2. Optionally tweak `.env` if you need different admin credentials, proxy
+   secrets, or demo user profile/password via the `DEMO_USER_*` variables.
 
 3. Import `infra/certs/portal-dev-ca.crt` into your OS/browser trust store (or
    accept the warning). The `.localhost` suffix resolves to `127.0.0.1`
