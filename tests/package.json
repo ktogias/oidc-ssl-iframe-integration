@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "cypress": "^13.13.1",
+    "dotenv": "^16.4.5",
     "typescript": "~5.4.2"
   }
 }

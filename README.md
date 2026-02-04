@@ -181,10 +181,10 @@ The compose file lives at the repository root and wires the following services:
   `npm install` there and execute
   `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu" npm run cy:run -- \
   --browser electron --headless` (extra args avoid Chromium sandbox issues on
-  restricted hosts). Set `CYPRESS_PORTAL_USERNAME` /
-  `CYPRESS_PORTAL_PASSWORD` if you change the demo credentials; otherwise the
-  defaults (`demo.user` / `changeMe123`) are used. The suite uses `cy.origin()`
-  to complete the Keycloak login automatically.
+  restricted hosts). The suite auto-loads credentials from the repo `.env`
+  (`DEMO_USER_USERNAME` / `DEMO_USER_PASSWORD`) but you can override them with
+  `CYPRESS_PORTAL_USERNAME` / `CYPRESS_PORTAL_PASSWORD`. `cy.origin()` drives
+  the Keycloak login automatically.
 - **Smoke script** – `./scripts/smoke.sh` still pings the portal + partner
   endpoints for a quick readiness probe.
 
