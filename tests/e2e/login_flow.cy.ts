@@ -20,22 +20,12 @@ describe('Portal login flow', () => {
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
     cy.contains('Demo User').should('exist');
 
+    let popupUrl: string | undefined;
     cy.window().then((win) => {
       cy.stub(win, 'open')
         .callsFake((url: string) => {
-          const fakeWindow: Window = {
-            closed: false,
-            close() {
-              this.closed = true;
-            },
-          } as Window;
-
-          cy.visit(url).then(() => {
-            win.postMessage({ type: 'partner-handshake-complete' }, win.location.origin);
-            fakeWindow.close();
-          });
-
-          return fakeWindow;
+          popupUrl = url;
+          return { closed: false, close() {} } as Window;
         })
         .as('handshakePopup');
     });
@@ -43,6 +33,18 @@ describe('Portal login flow', () => {
     cy.contains('Connect partner session').click();
     cy.get('@handshakePopup').should('have.been.called');
 
+    cy.then(() => {
+      expect(popupUrl, 'handshake url').to.be.a('string');
+      cy.visit(popupUrl!);
+    });
+
+    cy.contains('Partner Application', { timeout: 20000 }).should('be.visible');
+    cy.contains('"username": "demo.user"', { timeout: 20000 }).should('exist');
+    cy.contains('"email": "demo.user@example.com"').should('exist');
+    cy.contains('"partner-user"').should('exist');
+    cy.contains('"portal-user"').should('exist');
+
+    cy.visit('/');
     cy.contains('Partner connected', { timeout: 20000 }).should('be.visible');
     cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
 
