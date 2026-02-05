@@ -9,8 +9,9 @@ This project explores how a customer-facing "portal" can expose a third-party
 "partner" application inside an iframe while keeping every hop protected by
 Keycloak-issued tokens. The stack runs entirely via containers so the same
 topology can be reproduced locally and in CI. Angular (via `angular-keycloak`)
-authenticates the initial end user, while Apache enforces OIDC for the proxied
-partner routes and handles SSL termination.
+authenticates the initial end user and automatically launches the partner popup
+handshake, while Apache enforces OIDC for the proxied partner routes and
+handles SSL termination plus identity header injection.
 
 ## Containerized Architecture
 
@@ -43,23 +44,22 @@ graph LR
 
 ## Request & Authentication Flow
 
-1. User hits `https://portal.localhost/` and Angular bootstraps with `angular-
-   keycloak`, performing an authorization code + PKCE flow directly against
-   Keycloak.
+1. User hits `https://portal.localhost/` and the Angular shell immediately
+   redirects to Keycloak using the authorization-code + PKCE flow from
+   `angular-keycloak`.
 
-2. The authenticated UI renders an iframe whose `src` resides under
-   `/partner/*`; Apache intercepts that path, triggers `mod_auth_openidc`, and
-   redirects the browser to Keycloak for a second OAuth2 code flow tied to the
-   partner client.
+2. After Keycloak sends the user back to the portal the SPA auto-launches a
+   small popup pointed at `/partner/?popup_handshake=true`. That window is the
+   only place where the partner client ever performs an OAuth flow.
 
-3. After Keycloak redirects back to Apache (via `/oidc_popup_callback.html` for
-   silent refresh/popups), Apache validates the token set and injects
-   headers/cookies before proxying the request to the partner container over
-   the internal network.
+3. Apache intercepts the popup request, performs `mod_auth_openidc` auth
+   against Keycloak on behalf of the confidential `partner-proxy` client, then
+   posts the resulting session back to the opener window before closing.
 
-4. Subsequent iframe interactions reuse the established Apache session until
-   expiration, and both portal calls and partner calls remain TLS-protected
-   end-to-end.
+4. With the Apache session established the main page loads the iframe pointed
+   at `/partner/`. Apache now proxies traffic to the Flask backend while
+   injecting `X-User-*` headers (username, email, roles) that were minted by
+   Keycloak. Subsequent iframe traffic reuses that session until it expires.
 
 ### Sequence Diagram
 
@@ -67,19 +67,24 @@ graph LR
 sequenceDiagram
     participant B as Browser
     participant P as Portal SPA
+    participant H as Handshake Popup
     participant A as Apache Proxy
     participant K as Keycloak
     participant X as Partner App
 
     B->>P: Load portal (angular-keycloak init)
-    P->>K: OIDC auth (code + PKCE)
+    P->>K: SPA OIDC auth (code + PKCE)
     K-->>P: Tokens stored in SPA
-    P->>B: Render iframe pointing to /partner
-    B->>A: GET /partner/resource
+    P->>H: Open popup to /partner/?popup_handshake=true
+    H->>A: GET /partner (popup window)
     A->>K: OIDC auth for partner client
     K-->>A: Tokens (id/access)
-    A->>X: Forward request with headers
-    X-->>A: Response
+    A-->>H: Session cookies + X-User headers
+    H->>P: postMessage handshake complete
+    P->>B: Render iframe pointing to /partner
+    B->>A: GET /partner (iframe)
+    A->>X: Forward request with injected headers
+    X-->>A: Claims response
     A-->>B: Iframe content
 
 ```
@@ -105,14 +110,15 @@ sequenceDiagram
 - Serve `oidc_popup_callback.html` and related assets from a static directory.
 
 - Enforce OAuth2 on partner paths, injecting user info headers (e.g., `X-User-
-  Email`) before forwarding downstream.
+  Name`, `X-User-Email`, `X-User-Roles`) before forwarding downstream.
 
 ## Configuration Artifacts
 
 - `infra/keycloak/realm-export.json.template` – realm definition for the
-  `portal-spa` and `partner-proxy` clients plus demo users/roles; rendered by
-  the custom entrypoint before startup using values supplied through the
-  `DEMO_USER_*` variables in `.env`.
+  `portal-spa` and `partner-proxy` clients plus demo users/roles and a
+  protocol mapper that flattens realm roles into the `realm_roles` claim;
+  rendered by the custom entrypoint before startup using values supplied
+  through the `DEMO_USER_*` variables in `.env`.
 
 - `infra/keycloak/keycloak.conf` – Keycloak Quarkus HTTPS/hostname config
   copied into the custom image built from `infra/keycloak/Dockerfile`.
@@ -130,7 +136,7 @@ sequenceDiagram
   authority and per-service certs (ignored by git).
 
 - `infra/partner/app` – Flask backend exposed through Apache; surfaces
-  forwarded identity headers via `GET /claims`.
+  forwarded identity headers (username, email, roles) via `GET /claims`.
 - `tests/` – Cypress workspace containing the e2e config (`cypress.config.ts`),
   specs (`tests/e2e`), fixtures, and generated artifacts.
 
@@ -150,14 +156,17 @@ sequenceDiagram
 4. Launch the stack: `docker compose up --build`. Keycloak becomes available at
    `https://keycloak.localhost:8443`, while Apache listens on
    `https://portal.localhost` and proxies traffic to the portal + partner
-   containers. Visit `https://portal.localhost` to view the Angular portal stub
-   and `https://portal.localhost/partner/claims` to hit the partner API behind
-   the OIDC-protected route.
+ containers. Visit `https://portal.localhost` to view the Angular portal stub
+  and `https://portal.localhost/partner/claims` to hit the partner API behind
+  the OIDC-protected route.
 
 > **Note:** Changes to `infra/apache/sites/portal.conf.template` or any file
 > under `infra/keycloak/` now require `docker compose build apache keycloak`
 > (or `docker compose up --build`) because those assets are bundled into their
 > respective images.
+> **Note:** The partner Flask app is also baked into an image. After editing
+> `infra/partner/app/**` run `docker compose up --build partner apache` so the
+> reverse proxy and backend pick up your changes.
 
 The compose file lives at the repository root and wires the following services:
 
@@ -178,13 +187,22 @@ The compose file lives at the repository root and wires the following services:
   execute the specs under `src/**/*.spec.ts`. Use `npm run test:watch` for TDD
   loops and `npm run lint` to keep ESLint happy before pushing.
 - **Cypress e2e** – the `tests/` workspace hosts Cypress 13. Install deps with
-  `npm install` there and execute
-  `ELECTRON_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu" npm run cy:run -- \
-  --browser electron --headless` (extra args avoid Chromium sandbox issues on
-  restricted hosts). The suite auto-loads credentials from the repo `.env`
-  (`DEMO_USER_USERNAME` / `DEMO_USER_PASSWORD`) but you can override them with
-  `CYPRESS_PORTAL_USERNAME` / `CYPRESS_PORTAL_PASSWORD`. `cy.origin()` drives
-  the Keycloak login automatically.
+  `npm install` there and run:
+
+  ```bash
+  CHROME_EXTRA_LAUNCH_ARGS="--no-sandbox --disable-gpu \
+    --disable-dev-shm-usage --disable-setuid-sandbox" \
+    npm run cy:run -- --browser chrome --headed
+  ```
+
+  Chrome is required because the portal relies on a real popup to complete the
+  partner handshake; the extra flags keep Chromium happy on sandboxed hosts.
+  The suite auto-loads credentials from `.env` (`DEMO_USER_USERNAME`,
+  `DEMO_USER_PASSWORD`, etc.) but you can override them via
+  `CYPRESS_PORTAL_USERNAME`, `CYPRESS_PORTAL_PASSWORD`, and
+  `CYPRESS_PORTAL_ROLES`. `cy.origin()` drives both the SPA login and the
+  partner popup, then asserts the iframe shows the expected claims and that
+  Apache forwarded the `X-User-*` headers.
 - **Smoke script** – `./scripts/smoke.sh` still pings the portal + partner
   endpoints for a quick readiness probe.
 
@@ -203,10 +221,10 @@ The partner container runs a lightweight Flask service (see
 `infra/partner/app`) that:
 
 - renders an informational landing page describing which headers Apache
-  injects;
+  injects (including `X-User-Roles` after the popup completes);
 
-- exposes `GET /claims`, which echoes the received identity headers for easy
-  debugging;
+- exposes `GET /claims`, which echoes the received identity headers as JSON so
+  Cypress and manual testers can confirm username/email/roles round trips;
 
 - provides `/healthz` for smoke tests.
 
@@ -218,15 +236,16 @@ layer while remaining easy to extend with more routes.
 The portal service is an Angular application (`infra/portal/app`) that
 leverages `keycloak-angular` to enforce an immediate login (`onLoad: 'login-
 required'`). After bootstrap it fetches the user profile, renders ID-token
-claims, and embeds the `/partner/` iframe so contributors can validate cross-
-origin behavior without wiring a full production UI yet. The Docker image
-performs a multi-stage build (Node → Nginx) so no Node runtime ships in
-production containers.
+claims, launches the popup handshake, and embeds the `/partner/` iframe so
+contributors can validate cross-origin behavior without wiring a full
+production UI yet. The Docker image performs a multi-stage build (Node →
+Nginx) so no Node runtime ships in production containers.
 
 ## Next Steps
 
-- Integrate the smoke script into CI so every change validates TLS routing and
-  Keycloak imports automatically.
+- Integrate the smoke script into CI so every change validates TLS routing,
+  Keycloak imports, and popup behavior automatically.
 
-- Add end-to-end tests (e.g., Cypress) that perform a full login, load the
-  iframe, and assert headers reach the partner backend.
+- Extend the Cypress suite with negative tests (role revocation, expired
+  sessions, partner error responses) so the iframe shim is covered beyond the
+  happy path.
