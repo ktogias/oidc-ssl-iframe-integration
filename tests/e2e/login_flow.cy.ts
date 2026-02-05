@@ -1,6 +1,13 @@
 const username = Cypress.env('PORTAL_USERNAME') as string;
 const password = Cypress.env('PORTAL_PASSWORD') as string;
 const email = Cypress.env('PORTAL_EMAIL') as string;
+const rawRoles = Cypress.env('PORTAL_ROLES') as string | string[] | undefined;
+const portalRoles = Array.isArray(rawRoles)
+  ? rawRoles
+  : (rawRoles ?? '')
+      .split(',')
+      .map((role) => role.trim())
+      .filter((role) => role.length > 0);
 
 const PORTAL_ORIGIN = 'https://portal.localhost';
 const KEYCLOAK_ORIGIN = 'https://keycloak.localhost:8443';
@@ -45,12 +52,36 @@ const waitForIframeClaims = () => {
     .should('be.visible')
     .its('0.contentDocument.body')
     .should('not.be.empty')
-    .then(cy.wrap)
-    .within(() => {
-      cy.contains(`"username": "${username}"`).should('exist');
-      if (email) {
-        cy.contains(`"email": "${email}"`).should('exist');
-      }
+    .then((body) => {
+      cy.wrap(body)
+        .find('#claims', { timeout: 20000 })
+        .invoke('text')
+        .should((raw) => {
+          expect(raw.trim(), 'partner claims payload').to.match(/^\{/);
+        })
+        .then((raw) => {
+          const parsed = JSON.parse(raw.trim()) as {
+            claims: { username?: string; email?: string; roles?: string[] };
+            headers: Record<string, unknown>;
+          };
+
+          const expectedClaims: Record<string, unknown> = { username };
+          if (email) {
+            expectedClaims.email = email;
+          }
+          if (portalRoles.length > 0) {
+            expectedClaims.roles = portalRoles;
+          }
+
+          expect(parsed.claims).to.deep.include(expectedClaims);
+          expect(parsed.headers['X-User-Name']).to.equal(username);
+          if (email) {
+            expect(parsed.headers['X-User-Email']).to.equal(email);
+          }
+          if (portalRoles.length > 0) {
+            expect(parsed.headers['X-User-Roles']).to.exist;
+          }
+        });
     });
 };
 
