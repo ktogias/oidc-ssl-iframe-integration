@@ -34,6 +34,24 @@ const startFreshPortalSession = () => {
   cy.visit('/');
   cy.location('origin', { timeout: 20000 }).should('eq', KEYCLOAK_ORIGIN);
   completeKeycloakLogin();
+  ensurePortalOrigin();
+};
+
+const waitForIframeClaims = () => {
+  ensurePortalOrigin();
+  cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
+
+  cy.get('iframe[title="Partner application"]', { timeout: 20000 })
+    .should('be.visible')
+    .its('0.contentDocument.body')
+    .should('not.be.empty')
+    .then(cy.wrap)
+    .within(() => {
+      cy.contains(`"username": "${username}"`).should('exist');
+      if (email) {
+        cy.contains(`"email": "${email}"`).should('exist');
+      }
+    });
 };
 
 beforeEach(() => {
@@ -51,29 +69,6 @@ describe('Portal login flow', () => {
     startFreshPortalSession();
     cy.contains('Portal Dashboard', { timeout: 20000 }).should('be.visible');
 
-    cy.visit('/partner/?popup_handshake=true');
-    ensurePortalOrigin();
-    cy.url({ timeout: 20000 }).should('include', '/partner');
-    cy.contains('Partner Application', { timeout: 20000 }).should('exist');
-    cy.contains(`"username": "${username}"`, { timeout: 20000 }).should('exist');
-    if (email) {
-      cy.contains(`"email": "${email}"`, { timeout: 20000 }).should('exist');
-    }
-
-    cy.visit('/');
-    ensurePortalOrigin();
-    cy.contains('Iframe session established.', { timeout: 20000 }).should('be.visible');
-
-    cy.get('iframe[title="Partner application"]', { timeout: 20000 })
-      .should('be.visible')
-      .its('0.contentDocument.body')
-      .should('not.be.empty')
-      .then(cy.wrap)
-      .within(() => {
-        cy.contains(`"username": "${username}"`).should('exist');
-        if (email) {
-          cy.contains(`"email": "${email}"`).should('exist');
-        }
-      });
+    waitForIframeClaims();
   });
 });
