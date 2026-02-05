@@ -16,5 +16,7 @@ infra/portal/app/.angular/
 infra/portal/app/dist/
 
 # Cypress artifacts (keep .gitkeep placeholders only)
-tests/artifacts/*
+tests/artifacts/**
+!tests/artifacts/
+!tests/artifacts/.gitkeep
 !tests/artifacts/**/.gitkeep
