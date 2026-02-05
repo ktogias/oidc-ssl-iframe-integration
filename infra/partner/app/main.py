@@ -17,6 +17,10 @@ def _parse_roles(raw_value: str) -> List[str]:
         parsed = json.loads(raw_value)
         if isinstance(parsed, list):
             return [str(role) for role in parsed]
+        if isinstance(parsed, dict):
+            roles = parsed.get("roles")
+            if isinstance(roles, list):
+                return [str(role) for role in roles]
     except json.JSONDecodeError:
         pass
     candidates = [token.strip() for token in raw_value.replace(",", " ").split(" ")]

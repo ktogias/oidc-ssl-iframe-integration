@@ -51,7 +51,7 @@
     # Forward selected identity claims to the partner service
     RequestHeader set X-User-Name "%{OIDC_CLAIM_preferred_username}e" env=OIDC_CLAIM_preferred_username
     RequestHeader set X-User-Email "%{OIDC_CLAIM_email}e" env=OIDC_CLAIM_email
-    RequestHeader set X-User-Roles "%{OIDC_CLAIM_realm_access.roles}e" env=OIDC_CLAIM_realm_access_roles
+    RequestHeader set X-User-Roles "%{OIDC_CLAIM_realm_roles}e" env=OIDC_CLAIM_realm_roles
 
     <Location /partner>
         AuthType openid-connect

@@ -11,7 +11,8 @@ const portalPassword =
   process.env.CYPRESS_PORTAL_PASSWORD ?? process.env.DEMO_USER_PASSWORD ?? 'changeMe123';
 const portalEmail =
   process.env.CYPRESS_PORTAL_EMAIL ?? process.env.DEMO_USER_EMAIL ?? 'demo.user@example.com';
-const portalRoles = process.env.CYPRESS_PORTAL_ROLES ?? '';
+const portalRoles =
+  process.env.CYPRESS_PORTAL_ROLES ?? process.env.DEMO_USER_ROLES ?? 'portal-user,partner-user';
 
 export default defineConfig({
   e2e: {

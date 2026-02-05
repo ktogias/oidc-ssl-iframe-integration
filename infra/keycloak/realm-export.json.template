@@ -66,6 +66,24 @@
         "https://portal.localhost"
       ],
       "authorizationServicesEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "Realm roles claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "user.attribute": "",
+            "claim.name": "realm_roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "usermodel.realmRoleMapping.rolePrefix": ""
+          }
+        }
+      ],
       "defaultClientScopes": [
         "profile",
         "email",

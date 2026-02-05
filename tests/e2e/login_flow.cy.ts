@@ -69,17 +69,18 @@ const waitForIframeClaims = () => {
           if (email) {
             expectedClaims.email = email;
           }
-          if (portalRoles.length > 0) {
-            expectedClaims.roles = portalRoles;
-          }
 
           expect(parsed.claims).to.deep.include(expectedClaims);
+          if (portalRoles.length > 0) {
+            expect(parsed.claims.roles, 'partner roles claim').to.be.an('array');
+            expect(parsed.claims.roles).to.include.members(portalRoles);
+          }
           expect(parsed.headers['X-User-Name']).to.equal(username);
           if (email) {
             expect(parsed.headers['X-User-Email']).to.equal(email);
           }
           if (portalRoles.length > 0) {
-            expect(parsed.headers['X-User-Roles']).to.exist;
+            expect(parsed.headers['X-User-Roles']).to.be.a('string');
           }
         });
     });
